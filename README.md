@@ -6,10 +6,10 @@ RaspberryPi projects
 
 A toy code for a raspberry pi camera usage:
 
-- [x] following a face. [DONE]
-- [] face is recognised unsing a [mobilenet_v3](https://www.kaggle.com/models/google/mobilenet-v3/tfLite/large-100-224-feature-vector-metadata) model features. [NOT YET]
-- [] chat using [Google Gemini API ](https://ai.google.dev/gemini-api/docs/quickstart?lang=python) [NOT YET]
-- [] voice synthesis using [Google Text-to-Speech](https://gtts.readthedocs.io/en/latest/index.html)
+- [x] following a face. 
+- [ ] face is recognised unsing a [mobilenet_v3](https://www.kaggle.com/models/google/mobilenet-v3/tfLite/large-100-224-feature-vector-metadata) model features. 
+- [ ] chat using [Google Gemini API ](https://ai.google.dev/gemini-api/docs/quickstart?lang=python) 
+- [ ] voice synthesis using [Google Text-to-Speech](https://gtts.readthedocs.io/en/latest/index.html)
 
 ### Install instructions
 
