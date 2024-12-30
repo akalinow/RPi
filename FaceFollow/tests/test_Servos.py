@@ -10,7 +10,7 @@ class TestServos(unittest.TestCase):
         self.assertEqual(self.servos.currAngle, self.servos.restPos)
 
     def test_reset_position(self):
-        self.servos.setPosition(90, 85)
+        self.servos.setPosition((90, 85))
         self.servos.resetPosition()
         self.assertEqual(self.servos.currAngle, self.servos.restPos)
 
@@ -27,12 +27,12 @@ class TestServos(unittest.TestCase):
         self.assertNotEqual(self.servos.currAngle["v"], 100)
 
     def test_set_position(self):
-        self.servos.setPosition(90, 85)
+        self.servos.setPosition((90, 85))
         self.assertEqual(self.servos.currAngle["h"], 90)
         self.assertEqual(self.servos.currAngle["v"], 85)
 
     def test_str(self):
-        self.servos.setPosition(90, 85)
+        self.servos.setPosition((90, 85))
         self.assertEqual(str(self.servos), "\x1b[34mH:\x1b[0m90 \x1b[34mV:\x1b[0m85")
 
 if __name__ == '__main__':

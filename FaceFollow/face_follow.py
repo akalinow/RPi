@@ -27,7 +27,7 @@ def test():
     interpreter.allocate_tensors()
 
     picam = Camera()
-    detector = Detector('/home/akalinow/scratch/FaceFollow/detector.tflite')
+    detector = Detector('blaze_face_short_range.tflite')
     servos = Servos()
     servos.setPosition((90,85)) 
 
