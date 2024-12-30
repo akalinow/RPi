@@ -16,7 +16,7 @@ A toy code for a raspberry pi camera usage:
 ```Bash
 python3 -m venv --system-site-packages /home/akalinow/scratch/venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -r FaceFollow/requirements.txt
 ```
 
 The venv has to use system packages as there are issue witn installing picamera2 from pip.
@@ -25,5 +25,6 @@ The venv has to use system packages as there are issue witn installing picamera2
 ### Run instructions
 ```Bash
 source venv/bin/activate
+cd FaceFollow
 python face_follow.py
 ```
