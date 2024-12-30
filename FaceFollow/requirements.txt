@@ -1,0 +1,5 @@
+tensorflow
+mediapipe
+jupyterlab
+termcolor
+rpi-lgpio
