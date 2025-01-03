@@ -29,6 +29,20 @@ def _normalized_to_pixel_coordinates(
   y_px = min(math.floor(normalized_y * image_height), image_height - 1)
   return x_px, y_px
 ####################################################################
+def draw_fps(image, fps):
+   
+  # Show the FPS
+  # Visualization parameters
+  _ROW_SIZE = 15  # pixels
+  _LEFT_MARGIN = 5  # pixels
+  _TEXT_COLOR = (0, 0, 255)  # red
+  _FONT_SIZE = 1
+  _FONT_THICKNESS = 1
+  fps_text = 'FPS = ' + str(int(fps))
+  text_location = (_LEFT_MARGIN, _ROW_SIZE)
+  cv2.putText(image, fps_text, text_location, cv2.FONT_HERSHEY_PLAIN,
+              _FONT_SIZE, _TEXT_COLOR, _FONT_THICKNESS)
+####################################################################
 def drawFocusPoints(image, focusPoints):
     for point in focusPoints:
         width, height = image.shape[1], image.shape[0]
@@ -40,7 +54,6 @@ def drawFocusPoints(image, focusPoints):
 
         new_res = (224, 224)
         bbox = point[2:6].astype(int)
-        print(bbox)
         image_cropped = image[bbox[1]:bbox[1]+bbox[3], bbox[0]:bbox[0]+bbox[2]]
         image_resized = cv2.resize(image_cropped,dsize=new_res, interpolation = cv2.INTER_CUBIC)
     return image_resized

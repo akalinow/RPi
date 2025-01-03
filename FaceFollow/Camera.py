@@ -13,7 +13,7 @@ import cv2
 
 class Camera:
 
-    normalSize = (640, 480)
+    normalSize = (2*640, 2*480)
 
     ####################################
     def __init__(self):

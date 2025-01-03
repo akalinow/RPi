@@ -3,7 +3,7 @@ import time
 from Camera import Camera
 from Detector import Detector
 from Servos import Servos   
-from image_functions import visualize, drawFocusPoints
+from image_functions import *
 
 import numpy as np
 import cv2
@@ -13,6 +13,9 @@ from termcolor import colored
 
 #TensorFlow
 import tensorflow as tf
+
+#Pandas
+import pandas as pd
 
 #Kaggle
 import kagglehub
@@ -29,10 +32,23 @@ def test():
     picam = Camera()
     detector = Detector('blaze_face_short_range.tflite')
     servos = Servos()
-    servos.setPosition((90,85)) 
+    #servos.setPosition((90,85)) 
+    servos.setPosition((170,40))
 
     picamv2_fov = np.array((60, 30))
     deltaPos = np.zeros(2)
+
+    '''
+    dummyRow = np.zeros((1280)),
+    df = pd.DataFrame(data=dummyRow)
+    df["label"] = np.full((1), -1)
+    '''
+
+    file_path = '/home/akalinow/scratch/RPi/FaceFollow/df.parquet.gzip'
+    df = pd.read_parquet(file_path)
+    df.drop(index=0, inplace=True)
+    df.reindex()
+    features = df.drop(columns=['label'])
     
     while True:
         start_time = time.time()
@@ -42,7 +58,7 @@ def test():
 
         if len(faces) > 0:
             face_pos = faces[0][0:2]
-            print("\r",face_pos, end=' ',)
+            #print("\r",face_pos, end=' ',)
 
             camPos = servos.getPosition()
             deltaPos += (face_pos - 0.5)*picamv2_fov
@@ -57,31 +73,48 @@ def test():
             # Visualization parameters
             end_time = time.time()
             fps = 1.0 / (end_time - start_time)
-            _ROW_SIZE = 15  # pixels
-            _LEFT_MARGIN = 5  # pixels
-            _TEXT_COLOR = (0, 0, 255)  # red
-            _FONT_SIZE = 1
-            _FONT_THICKNESS = 1
-            fps_text = 'FPS = ' + str(int(fps))
-            text_location = (_LEFT_MARGIN, _ROW_SIZE)
-            cv2.putText(rgb_annotated_image, fps_text, text_location, cv2.FONT_HERSHEY_PLAIN,
-                _FONT_SIZE, _TEXT_COLOR, _FONT_THICKNESS)
-
+            draw_fps(rgb_annotated_image, fps)
             cv2.imwrite("test_annotated.jpg", rgb_annotated_image)
+            ######################################################
 
+            #Identify face
             input_data = np.expand_dims(annotated_image/255, axis=0).astype(np.float32)
             input = interpreter.get_input_details()[0]
             output = interpreter.get_output_details()[0]
             interpreter.set_tensor(input['index'], input_data)
             interpreter.invoke()
             output = interpreter.get_tensor(output['index'])
-            print(output)
 
-        #break 
+            distance = np.sum((output - features)**2, axis=1)
+            min_distance = np.min(distance)
+            min_dist_index = np.argmin(distance)
+            min_dist_label = df["label"].iloc[min_dist_index]
+            print("min. dist. and label:",min_distance, min_dist_label)
+
+            max_distance = np.max(distance)
+            max_dist_index = np.argmax(distance)
+            max_dist_label = df["label"].iloc[min_dist_index]
+            print("max distance and label:", max_distance, max_dist_label)
+            new_item_label = min_dist_label
+            
+            if min_dist_label<0 or min_distance>200:
+                new_item_label = np.max(df["label"])+1
+
+            print("New item label:",new_item_label)
+            new_item_label = np.array(new_item_label).reshape((1,1))
+            dataRow = np.concatenate( (output, new_item_label), axis=1)
+            df.loc[len(df)+10] = dataRow[0]
+            print("Number of examples:",len(df))
+            if len(df)>200:
+                break
+            #######################################################
         else:
             cv2.imwrite("test_annotated.jpg", image)
 
     print("")
+    print(df.describe())
+    df.to_parquet('df.parquet.gzip',
+                   compression='gzip')  
 
 ###################################
 test()
