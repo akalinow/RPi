@@ -3,3 +3,4 @@ mediapipe
 jupyterlab
 termcolor
 rpi-lgpio
+VL53L0X
