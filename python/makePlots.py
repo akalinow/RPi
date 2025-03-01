@@ -67,25 +67,6 @@ def addEnvData(axis):
     ax2.tick_params(axis='y', labelcolor=color)
     ax2.set_ylim(0, 5)
 
-    ##Add annotations
-    #da = DrawingArea(20, 20, 0, 0)
-    #p = Circle((10, 10), 10)
-    #da.add_artist(p)
-    da = TextArea("Salon", textprops=dict(color="red", size=20, rotation=0))
-
-    
-    '''
-    xy = (0.5, 0.5)
-    ab = AnnotationBbox(da, xy,
-                    xybox=(0.05, 0.75),
-                    xycoords='axes fraction',
-                    boxcoords=("axes fraction"),
-                    box_alignment=(0.1, 0.1),
-                    arrowprops=dict(arrowstyle="->"),
-                    bboxprops=dict(alpha=0.5))
-    axis.add_artist(ab)
-    '''
-
     #Adapt axes
     axis.set(xlabel='', ylabel=r'Temp. $[^{\circ}$C]',title='')
 
@@ -119,7 +100,6 @@ def addEnvData(axis):
     axis.axhline(0, color='black', linewidth=2, linestyle='--')
 
     #Add labels
-    print(df)
     df_tmp = df[['Date', 'Temperature_K']].copy()
     df_tmp = df_tmp.dropna()
     xy = (df_tmp["Date"].iloc[-1], df_tmp["Temperature_K"].iloc[-1])
