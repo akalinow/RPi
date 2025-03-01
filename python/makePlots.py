@@ -41,7 +41,7 @@ def makePlots():
     ax = fig.add_subplot(gs[0,1:])
     addEnvData(ax)
     
-    plt.show()
+    #plt.show()
     plt.savefig('temperature.png')
 ################################################
 ################################################
@@ -127,7 +127,6 @@ def addEnvData(axis):
     #adjust margins
     #plt.subplots_adjust(right=0.95, left=0.12, top=0.85, bottom=0.14)
     axis.set_xticks(axis.get_xticks(), axis.get_xticklabels(), rotation=90)
-    #axis.legend()
 
 ################################################
 ################################################
