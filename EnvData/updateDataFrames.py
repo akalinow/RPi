@@ -52,7 +52,10 @@ def updateMeasurementPandas():
     pd_path = "./sensor_data.csv"
     df = pd.DataFrame()
     if glob.glob(pd_path):
-        df = pd.read_csv(pd_path)
+        df = pd.read_csv(pd_path, parse_dates=["Date"])
+        df.index.rename('Date', inplace=True)
+        df.index = pd.to_datetime(df["Date"])
+        df.drop(columns=["Date"], inplace=True)
 
     measurements = ["Temperature", "CO2"]
     for aMeasurement in measurements:
@@ -61,14 +64,13 @@ def updateMeasurementPandas():
         with open(fileName, 'w') as f:
             json.dump(data, f)
         ##append df
-        #df = pd.concat([df, pd.read_json(fileName, orient='records')], axis=0)
-        #df = pd.merge(df, pd.read_json(fileName, orient='records'), how='outer', left_index=True, right_index=True)
-        df = df.join(pd.read_json(fileName, orient='records'), how='outer')
+        df_tmp = pd.read_json(fileName, convert_dates="Date", orient='records')
+        df_tmp.index.rename('Date', inplace=True)
+
+        df = pd.concat([df, df_tmp], axis=0, join='outer')
+        df.drop_duplicates(inplace=True)
         
- 
-    df.index.rename('Date', inplace=True)
-    print(df)
-    df.to_csv(pd_path, index=True)
+    df.to_csv(pd_path)
 ##################################################
 ##################################################
 def updateForecastPandas():
@@ -88,7 +90,8 @@ def updateForecastPandas():
             data = json.load(open(filePath))
             data = list(data.values())[0]
             df_tmp = pd.DataFrame(data["data"], index = data["times"], columns=[aMeasurement])
-            df = pd.concat([df, df_tmp], axis=0)    
+            df = pd.concat([df, df_tmp], axis=0)   
+            df.drop_duplicates(inplace=True)
 
     df.index.rename('Date', inplace=True)
     df.to_csv(pd_path, index=True)

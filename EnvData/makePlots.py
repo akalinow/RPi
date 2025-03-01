@@ -8,6 +8,9 @@ import glob
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
+#set xkcd style
+#plt.xkcd()
+
 ################################################
 ################################################
 def loadPandas(cvsFile):
@@ -42,7 +45,7 @@ def makePlots():
     print(df)
     ax.plot_date(df_forecast['Date'], df_forecast["Temperature"]-273.15, label='ICM', color='black', linewidth=1)
     ax.plot_date(df['Date'], df["Temperature_K"], label='Salon', color='red', linewidth=3)
-    #ax.plot_date(df['Date'], df["Temperature_Solar"], label='Balkon', color='green', linewidth=3)
+    ax.plot_date(df['Date'], df["Temperature_Solar"], label='Balkon', color='green', linewidth=3)
     
     #Adapt axes
     ax.set(xlabel='', ylabel=r'Temp. $[^{\circ}$C]',title='')
