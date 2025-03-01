@@ -1,6 +1,11 @@
 tensorflow
 mediapipe
+google-genai 
+opencv-python 
+pyaudio 
+pillow 
+mss
 jupyterlab
 termcolor
 rpi-lgpio
-VL53L0X
+#VL53L0X

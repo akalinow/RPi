@@ -14,6 +14,7 @@ from termcolor import colored
 #TensorFlow
 import tensorflow as tf
 import keras
+import keras
 
 #Pandas
 import pandas as pd
@@ -21,43 +22,21 @@ import pandas as pd
 #Kaggle
 import kagglehub
 
-id_model = keras.saving.load_model("model_A_vs_W.keras")
-
-kaggle_model_path = "google/mobilenet-v3/tfLite/large-100-224-feature-vector"
-model_path = kagglehub.model_download(kaggle_model_path)
-print(colored("Model path:","blue"),model_path)
-interpreter = tf.lite.Interpreter(model_path=model_path+"/1.tflite")
-interpreter.allocate_tensors()
-###
-picam = Camera()
-detector = Detector('blaze_face_short_range.tflite')
-servos = Servos() 
-servos.setPosition((130,40))
-###
-
-###################################
-def sweepCamera():
-
-    initAngle = (130,40)
-
-    step = 15 ##degrees
-    for iStep in range(36):
-        iXStep = random.randint(-3,3)
-        iYStep = random.randint(-4,4)
-        testAngle = initAngle + step*np.array((iXStep,iYStep))
-        servos.setPosition(testAngle)
-        time.sleep(0.15)
-        image = picam.getRGBImage()
-        faces = detector.getVideoResponse(image)
-        print("\r",testAngle, end=' ',)
-        print("\r",len(faces), end=' ',)
-        if len(faces) > 0:
-           return testAngle
-
-    servos.setPosition(initAngle)
-    return None
 ###################################
 def test():
+
+    id_model = keras.saving.load_model("model_A_vs_W.keras")
+
+    kaggle_model_path = "google/mobilenet-v3/tfLite/large-100-224-feature-vector"
+    model_path = kagglehub.model_download(kaggle_model_path)
+    print(colored("Model path:","blue"),model_path)
+    interpreter = tf.lite.Interpreter(model_path=model_path+"/1.tflite")
+    interpreter.allocate_tensors()
+
+    picam = Camera()
+    detector = Detector('blaze_face_short_range.tflite')
+    servos = Servos() 
+    servos.setPosition((130,40))
 
     picamv2_fov = np.array((60, 30))
     deltaPos = np.zeros(2)
@@ -73,6 +52,7 @@ def test():
     df["label"] = np.full((1), -1)
     df.to_parquet('df.parquet.gzip',compression='gzip') 
     '''
+    file_path = '/home/akalinow/scratch/RPi/FaceFollow/df.parquet_Artur.gzip'
     file_path = '/home/akalinow/scratch/RPi/FaceFollow/df.parquet_Artur.gzip'
     df = pd.read_parquet(file_path)
     features = df.drop(columns=['label'])
