@@ -76,7 +76,7 @@ def updateMeasurementPandas():
 def updateForecastPandas():
      
     pd_path = "./ICM_data.csv" 
-    dataPath = "/scratch/akalinow/ICM/"
+    dataPath = "../ICM/"
     dataDict = {"Temperature": "forecast_data_03236_0000000.json",
                 "Fall": "forecast_data_05226M0001500.json"
     }
@@ -91,7 +91,7 @@ def updateForecastPandas():
             data = list(data.values())[0]
             df_tmp = pd.DataFrame(data["data"], index = data["times"], columns=[aMeasurement])
             df = pd.concat([df, df_tmp], axis=0)   
-            df.drop_duplicates(inplace=True)
+            #df.drop_duplicates(inplace=True)
 
     df.index.rename('Date', inplace=True)
     df.to_csv(pd_path, index=True)
