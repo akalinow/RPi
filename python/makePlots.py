@@ -42,7 +42,7 @@ def makePlots():
     addEnvData(ax)
     
     #plt.show()
-    plt.savefig('temperature.png')
+    plt.savefig('temperature.jpg', dpi=100)
 ################################################
 ################################################
 def addEnvData(axis):
