@@ -1,4 +1,4 @@
-import time
+import time, random
 
 from Camera import Camera
 from Detector import Detector
@@ -13,6 +13,7 @@ from termcolor import colored
 
 #TensorFlow
 import tensorflow as tf
+import keras
 import keras
 
 #Pandas
@@ -40,6 +41,11 @@ def test():
     picamv2_fov = np.array((60, 30))
     deltaPos = np.zeros(2)
 
+    initialCamPos = sweepCamera()
+    if initialCamPos is None:
+        return
+    
+    servos.setPosition(initialCamPos)
     '''
     dummyRow = np.zeros((1280)),
     df = pd.DataFrame(data=dummyRow)
@@ -47,9 +53,14 @@ def test():
     df.to_parquet('df.parquet.gzip',compression='gzip') 
     '''
     file_path = '/home/akalinow/scratch/RPi/FaceFollow/df.parquet_Artur.gzip'
+    file_path = '/home/akalinow/scratch/RPi/FaceFollow/df.parquet_Artur.gzip'
     df = pd.read_parquet(file_path)
     features = df.drop(columns=['label'])
     nExamples = len(df)
+
+    personCounter = {"Wojtek":0,
+                     "Artur":0,
+                    "Unknown":0}
     
     while True:
         start_time = time.time()
@@ -87,12 +98,15 @@ def test():
             output = interpreter.get_tensor(output['index'])
 
             response = id_model(output)
-            if response<5:
+            if response<10:
                 print(colored("Artur!","blue"))
-            elif response>5:
+                personCount["Artur"] +=1
+            elif response>10:
                 print(colored("Wojtek!","blue"))
+                 personCount["Wojtek"] +=1
             else:
                 print(colored("Unknown!","blue"))
+                 personCount["Unknown"] +=1
 
             new_item_label = 0
             new_item_label = np.array(new_item_label).reshape((1,1))
@@ -114,18 +128,3 @@ def test():
 
 ###################################
 test()
-
-'''
-face detector result: 
-DetectionResult(detections=[Detection(bounding_box=BoundingBox(origin_x=0, origin_y=168, width=366, height=366), 
-categories=[Category(index=0, score=0.5604583024978638, display_name=None, category_name=None)], 
-keypoints=[
-NormalizedKeypoint(x=0.003223732579499483, y=0.7284545302391052, label='', score=0.0), 
-NormalizedKeypoint(x=0.24945300817489624, y=0.6111683249473572, label='', score=0.0), 
-NormalizedKeypoint(x=0.1393018364906311, y=0.9198736548423767, label='', score=0.0), 
-NormalizedKeypoint(x=0.19469484686851501, y=1.0107040405273438, label='', score=0.0), 
-NormalizedKeypoint(x=-0.044375721365213394, y=0.7179324626922607, label='', score=0.0), 
-NormalizedKeypoint(x=0.44926655292510986, y=0.4869495630264282, label='', score=0.0)])])
-
-
-'''
