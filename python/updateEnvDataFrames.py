@@ -76,7 +76,7 @@ def updateMeasurementPandas():
 def updateForecastPandas():
      
     pd_path = "./ICM_data.csv" 
-    dataPath = "../ICM/"
+    dataPath = "./"
     dataDict = {"Temperature": "forecast_data_03236_0000000.json",
                 "Fall": "forecast_data_05226M0001500.json"
     }

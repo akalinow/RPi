@@ -48,8 +48,8 @@ def makePlots():
 def addEnvData(axis):
 
     #Load data
-    df = loadPandas("../EnvData/sensor_data.csv")
-    df_forecast = loadPandas("../EnvData/ICM_data.csv")
+    df = loadPandas("./sensor_data.csv")
+    df_forecast = loadPandas("./ICM_data.csv")
     if df.empty:
         return
     
