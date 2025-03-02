@@ -11,7 +11,11 @@ import matplotlib.colors as mcolors
 from matplotlib.gridspec import GridSpec
 from matplotlib.offsetbox import (AnnotationBbox, DrawingArea, OffsetImage,
                                   TextArea)
-from matplotlib.patches import Circle
+import matplotlib.transforms as mtransforms
+from matplotlib.patches import Circle, FancyBboxPatch
+
+import locale
+locale.setlocale(locale.LC_ALL, 'pl_PL.UTF-8')
 
 #set xkcd style
 #plt.xkcd()
@@ -67,7 +71,7 @@ def makePlots():
     fig = plt.figure(figsize=(8.0, 4.8)) 
     gs = GridSpec(3, 3, figure=fig)
 
-    ax = fig.add_subplot(gs[0,0])
+    ax = fig.add_subplot(gs[:,0])
     addTimeTable(ax, "timetable.json", (datetime.datetime.now() + datetime.timedelta(days=1)))    
     addInfoBox(ax)
 
@@ -79,7 +83,7 @@ def makePlots():
     addAnnotations(ax, addDates=False)
     addCO2Data(ax, "sensor_data.csv")
     
-    plt.subplots_adjust(right=0.88, left=0.05, top=0.95, bottom=0.1, hspace=0.5)
+    plt.subplots_adjust(right=0.88, left=0.0, top=0.95, bottom=0.1, hspace=0.5, wspace=0.4)
     plt.savefig('./temperature.jpg', dpi=100)
     plt.show()
 ################################################
@@ -87,9 +91,9 @@ def makePlots():
 def addInfoBox(axis):
     
     #Add info box
-    text = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    text = datetime.datetime.now().strftime('%Y-%m-%d %H:%M \n %A')
     stylename = "round4, pad=0.5"
-    axis.text(0.74,0.99,
+    axis.text(0.9, 0.99,
               text, bbox=dict(boxstyle=stylename, fc="w", ec="k"),
               transform=axis.transAxes, size="large", color="blue",
               horizontalalignment="right", verticalalignment="center")
@@ -157,6 +161,8 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
 
     yMin, yMax = axis.get_ylim()
     axis.set_ylim(yMin-2, yMax+2)
+    axis.yaxis.set_major_locator(plt.MultipleLocator(5))
+
     
     #Add labels
     df_tmp = df[['Date', 'Temperature_K']].copy()
@@ -195,7 +201,7 @@ def addCO2Data(axis, csvSensorFile):
     axis.plot_date(df['Date'], df["CO2_K"], label='Salon', color='red', fmt=".")
 
     #Adapt axes
-    axis.set(xlabel='', ylabel=r'CO$_{2}$ [ppm]',title='')
+    axis.set(xlabel='', ylabel=r'CO$_{2}$ [ppk]',title='')
     axis.set_ylim(300, 3000)
 
     #Add labels
@@ -211,6 +217,9 @@ def addCO2Data(axis, csvSensorFile):
                   color='red',
                   arrowprops=dict(arrowstyle="->"))
     
+    yticks = np.arange(300, 3000, 500)
+    ylabels = [f'{y/1000:1.1f}' for y in yticks]
+    axis.set_yticks(yticks, labels=ylabels)
     #draw horizontal line at 350 (background level)
     axis.axhline(350, color='black', linewidth=2, linestyle='--')
 
@@ -220,9 +229,12 @@ def addTimeTable(axis, json_file, date):
 
     #Hide axes
     axis.axis('off')
+
+
     textWidthChars = 15
-    boxSizeAxisFraction = np.array((0.0, 0.0))
-    boxXYAxisFraction = np.array((0.7, 0.48))
+    rowHeight = 0.13
+    boxSizeAxisFraction = np.array((0.9, 0.02))
+    boxXYAxisFraction = np.array((0.04, 0.85))
     stylename = "round4, pad=0.5"
     bboxParams=dict(boxstyle=stylename, facecolor="yellow", ec="k", lw=2)
 
@@ -234,39 +246,46 @@ def addTimeTable(axis, json_file, date):
 
     for index in range(len(df)):
         item = df.iloc[index]
+
+        rowHeight = 0.13
+        boxSizeAxisFraction = np.array((0.9, 0.02))
         
         #start/end time
         text = "$^{"+item["date_from"].strftime('%H:%M')+"}"
         text += "_{"+item["date_to"].strftime('%H:%M')+"}$"
         #subject
-        subject = item["subject"]
+        subject = item["subject"].strip('język')
         if subject == "godzina wychowawcza":
-            subject = "GW"
-        subject = subject.center(textWidthChars)
+            subject = "godz. wych."
+       
         text += subject
         #event  
         if item['event']:
-            text += "\n"+item['event'].capitalize().center(textWidthChars)
+            text += "\n"+item['event'].capitalize()
+            rowHeight *= 2
         #Latex formatting             
         text = r"{}".format(text)
 
-        print(len(text))
         #bbox plotting
-        boxXYAxisFraction -= boxSizeAxisFraction
-        bbox = axis.text(*boxXYAxisFraction,
-                text, bbox=bboxParams,
-                size=12, color="black",
-                horizontalalignment="right", 
-                verticalalignment="center")#.get_window_extent().transformed(plt.gca().transData.inverted())
-        boxSizeAxisFraction[1] = 0.5
-        #print(bbox.get_clip_box())
-        #print(dir(bbox))
+        bb = mtransforms.Bbox([boxXYAxisFraction, boxXYAxisFraction+boxSizeAxisFraction])
+        fancy = FancyBboxPatch(bb.p0, bb.width, bb.height, boxstyle="round,pad=0.05", fc="yellow", ec="k", lw=2)
+        axis.add_patch(fancy)
+
+        bbox = axis.text(*(boxXYAxisFraction + np.array((-0.03, 0))),
+                text, 
+                #bbox=bboxParams,
+                size=15, color="black",
+                horizontalalignment="left", 
+                verticalalignment="center")  
+
+        boxXYAxisFraction += np.array((0,-rowHeight))  
+        #break
 
 
     
     
     # hide axes
-    axis.axis('off')
+    #axis.axis('off')
     return
 
     # Set y-axis (days)
