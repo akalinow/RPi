@@ -95,13 +95,14 @@ def getScheduleJSON():
             prefix, href = event.href.split('/')
             details = schedule_detail(client, prefix, href)
 
-            if "Przedmiot" in details.keys() and "Data" in details.keys() and "Rodzaj" in details.keys():
-
-                if details["Data"] not in events:
+            if details["Data"] not in events:
                     events[details["Data"]] = {}
+
+            if "Przedmiot" in details.keys() and "Data" in details.keys() and "Rodzaj" in details.keys():
                 events[details["Data"]][details["Przedmiot"]] = details["Rodzaj"]
             else:
-                print(details) 
+                events[details["Data"]][details["Rodzaj"]] = details["Rodzaj"]
+                print(details["Rodzaj"])
 
     print(events)               
                  

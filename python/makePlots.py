@@ -26,6 +26,33 @@ def loadPandas(cvsFile):
     return df
 ################################################
 ################################################
+def loadTimeTablePandas(jsonFile):
+
+    timetable_data = {}
+    try:
+        with open(jsonFile, 'r', encoding='utf-8') as f:
+            timetable_data = json.load(f)
+    except FileNotFoundError:
+        print(f"Error: File '{jsonFile}' not found.")
+        return
+    except json.JSONDecodeError:
+        print(f"Error: Invalid JSON format in '{jsonFile}'.")
+        return
+
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+    all_lessons = []
+    for day in days:
+        for lesson in timetable_data.get(day, []):
+            all_lessons.append(lesson)
+
+    df = pd.DataFrame(all_lessons)
+    # Convert time strings to datetime.time objects
+    df['date_from'] = pd.to_datetime(df['date_from'], format='%H:%M').dt.time
+    df['date_to'] = pd.to_datetime(df['date_to'], format='%H:%M').dt.time
+
+    return df        
+################################################
+################################################
 def makePlots():
 
     #Increase labels and font size
@@ -41,7 +68,7 @@ def makePlots():
     gs = GridSpec(3, 3, figure=fig)
 
     ax = fig.add_subplot(gs[0,0])
-    addTimeTable(ax, "timetable.json")    
+    addTimeTable(ax, "timetable.json", (datetime.datetime.now() + datetime.timedelta(days=1)))    
     addInfoBox(ax)
 
     ax = fig.add_subplot(gs[0,1:])
@@ -52,9 +79,9 @@ def makePlots():
     addAnnotations(ax, addDates=False)
     addCO2Data(ax, "sensor_data.csv")
     
-    plt.subplots_adjust(right=0.85, left=0.1, top=0.95, bottom=0.1, hspace=0.5)
-    plt.show()
+    plt.subplots_adjust(right=0.88, left=0.05, top=0.95, bottom=0.1, hspace=0.5)
     plt.savefig('./temperature.jpg', dpi=100)
+    plt.show()
 ################################################
 ################################################
 def addInfoBox(axis):
@@ -62,7 +89,7 @@ def addInfoBox(axis):
     #Add info box
     text = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     stylename = "round4, pad=0.5"
-    axis.text(0.6,0.9,
+    axis.text(0.74,0.99,
               text, bbox=dict(boxstyle=stylename, fc="w", ec="k"),
               transform=axis.transAxes, size="large", color="blue",
               horizontalalignment="right", verticalalignment="center")
@@ -189,43 +216,58 @@ def addCO2Data(axis, csvSensorFile):
 
 ################################################
 ################################################
-def addTimeTable(axis, json_file):
+def addTimeTable(axis, json_file, date):
 
-    try:
-        with open(json_file, 'r', encoding='utf-8') as f:
-            timetable_data = json.load(f)
-    except FileNotFoundError:
-        print(f"Error: File '{json_file}' not found.")
-        return
-    except json.JSONDecodeError:
-        print(f"Error: Invalid JSON format in '{json_file}'.")
-        return
+    #Hide axes
+    axis.axis('off')
+    textWidthChars = 15
+    boxSizeAxisFraction = np.array((0.0, 0.0))
+    boxXYAxisFraction = np.array((0.7, 0.48))
+    stylename = "round4, pad=0.5"
+    bboxParams=dict(boxstyle=stylename, facecolor="yellow", ec="k", lw=2)
 
-    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-    all_lessons = []
-    for day in days:
-        for lesson in timetable_data.get(day, []):
-            all_lessons.append(lesson)
+    df = loadTimeTablePandas(json_file)
 
-    df = pd.DataFrame(all_lessons)
+    #Filter data on date
+    date = date.strftime('%Y-%m-%d')
+    df = df.loc[df["date"]==date]
 
-    if df.empty:
-        print("No data to plot.")
-        return
+    for index in range(len(df)):
+        item = df.iloc[index]
+        
+        #start/end time
+        text = "$^{"+item["date_from"].strftime('%H:%M')+"}"
+        text += "_{"+item["date_to"].strftime('%H:%M')+"}$"
+        #subject
+        subject = item["subject"]
+        if subject == "godzina wychowawcza":
+            subject = "GW"
+        subject = subject.center(textWidthChars)
+        text += subject
+        #event  
+        if item['event']:
+            text += "\n"+item['event'].capitalize().center(textWidthChars)
+        #Latex formatting             
+        text = r"{}".format(text)
 
-    # Convert time strings to datetime.time objects
-    df['date_from'] = pd.to_datetime(df['date_from'], format='%H:%M').dt.time
-    df['date_to'] = pd.to_datetime(df['date_to'], format='%H:%M').dt.time
+        print(len(text))
+        #bbox plotting
+        boxXYAxisFraction -= boxSizeAxisFraction
+        bbox = axis.text(*boxXYAxisFraction,
+                text, bbox=bboxParams,
+                size=12, color="black",
+                horizontalalignment="right", 
+                verticalalignment="center")#.get_window_extent().transformed(plt.gca().transData.inverted())
+        boxSizeAxisFraction[1] = 0.5
+        #print(bbox.get_clip_box())
+        #print(dir(bbox))
 
-    print(df)
+
+    
+    
+    # hide axes
+    axis.axis('off')
     return
-
-    # Define a color palette for subjects
-    subjects = df['subject'].unique()
-    num_subjects = len(subjects)
-    colors = plt.get_cmap('tab20', num_subjects)  # Use a qualitative colormap
-
-    subject_colors = {subject: colors(i) for i, subject in enumerate(subjects)}
 
     # Set y-axis (days)
     day_indices = range(len(days))
