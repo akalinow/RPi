@@ -62,14 +62,15 @@ def updateMeasurementPandas():
         data = fetch_prom_data("env_data_"+aMeasurement+"[2h]")
         fileName = './sensor_data_'+aMeasurement+'.json'
         with open(fileName, 'w') as f:
-            json.dump(data, f)
+            json.dump(data, f) 
         ##append df
         df_tmp = pd.read_json(fileName, convert_dates="Date", orient='records')
         df_tmp.index.rename('Date', inplace=True)
-
         df = pd.concat([df, df_tmp], axis=0, join='outer')
-        df.drop_duplicates(inplace=True)
+        #df.drop_duplicates(inplace=True)
         
+    
+    #print(df)    
     df.to_csv(pd_path)
 ##################################################
 ##################################################
