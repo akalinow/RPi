@@ -91,7 +91,7 @@ def makePlots():
     
     plt.subplots_adjust(right=0.88, left=0.0, top=0.95, bottom=0.1, hspace=0.5, wspace=0.4)
     plt.savefig('./temperature.jpg', dpi=100)
-    plt.show()
+    #plt.show()
 ################################################
 ################################################
 def addInfoBox(axis):
