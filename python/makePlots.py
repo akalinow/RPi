@@ -72,7 +72,13 @@ def makePlots():
     gs = GridSpec(3, 3, figure=fig)
 
     ax = fig.add_subplot(gs[:,0])
-    addTimeTable(ax, "timetable.json", (datetime.datetime.now() + datetime.timedelta(days=1)))    
+    date = datetime.datetime.now()
+    if date.hour > 12:
+        date = date + datetime.timedelta(days=1)
+    elif date.weekday() > 4:
+        date = date + datetime.timedelta(days=7-date.weekday())  
+
+    addTimeTable(ax, "timetable.json", date)    
     addInfoBox(ax)
 
     ax = fig.add_subplot(gs[0,1:])
@@ -91,12 +97,13 @@ def makePlots():
 def addInfoBox(axis):
     
     #Add info box
-    text = datetime.datetime.now().strftime('%Y-%m-%d %H:%M \n %A')
+    text = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+    text = "Aktualizacja: "+text
     stylename = "round4, pad=0.5"
-    axis.text(0.9, 0.99,
+    axis.text(0.05, 1.03,
               text, bbox=dict(boxstyle=stylename, fc="w", ec="k"),
-              transform=axis.transAxes, size="large", color="blue",
-              horizontalalignment="right", verticalalignment="center")
+              transform=axis.transAxes, size=8, color="blue",
+              horizontalalignment="left", verticalalignment="center")
 
 ################################################
 ################################################
@@ -175,6 +182,7 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
                   textcoords='axes fraction', 
                   fontsize=15, 
                   color='red',
+                  weight='bold',
                   arrowprops=dict(arrowstyle="->"))
     
     df_tmp = df[['Date', 'Temperature_Solar']].copy()
@@ -183,10 +191,11 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
     axis.annotate("Balkon:\n"+str(xy[1]),
                   xy=xy,
                   xycoords='data',
-                  xytext=(1.05, -0.75),
+                  xytext=(1.01, -0.75),
                   textcoords='axes fraction', 
                   fontsize=15, 
                   color='green',
+                  weight='bold',
                   arrowprops=dict(arrowstyle="->"))
     
 ################################################
@@ -215,6 +224,7 @@ def addCO2Data(axis, csvSensorFile):
                   textcoords='axes fraction', 
                   fontsize=15, 
                   color='red',
+                  weight='bold',
                   arrowprops=dict(arrowstyle="->"))
     
     yticks = np.arange(300, 3000, 500)
@@ -230,7 +240,6 @@ def addTimeTable(axis, json_file, date):
     #Hide axes
     axis.axis('off')
 
-
     textWidthChars = 15
     rowHeight = 0.13
     boxSizeAxisFraction = np.array((0.9, 0.02))
@@ -241,8 +250,14 @@ def addTimeTable(axis, json_file, date):
     df = loadTimeTablePandas(json_file)
 
     #Filter data on date
-    date = date.strftime('%Y-%m-%d')
-    df = df.loc[df["date"]==date]
+    df = df.loc[df["date"]==date.strftime('%Y-%m-%d')]
+
+    #Add weekday name
+    text = date.strftime('%A').capitalize()
+    bbox = axis.text(0.5, 0.95,
+              text, bbox=bboxParams,
+              transform=axis.transAxes, size=15, color="black",
+              horizontalalignment="center", verticalalignment="center")
 
     for index in range(len(df)):
         item = df.iloc[index]
@@ -257,26 +272,40 @@ def addTimeTable(axis, json_file, date):
         subject = item["subject"].strip('język')
         if subject == "godzina wychowawcza":
             subject = "godz. wych."
+        elif subject == "wychowanie fizyczne":
+            subject = "WF"    
        
         text += subject
-        #event  
+        #event 
+        eventText = item['event'].capitalize() 
         if item['event']:
-            text += "\n"+item['event'].capitalize()
-            rowHeight *= 2
+            text += "\n"
+            fc = "red"
+            textColor = "white"
+        else:
+            fc = "yellow"
+            textColor = "black"
+    
         #Latex formatting             
         text = r"{}".format(text)
 
         #bbox plotting
         bb = mtransforms.Bbox([boxXYAxisFraction, boxXYAxisFraction+boxSizeAxisFraction])
-        fancy = FancyBboxPatch(bb.p0, bb.width, bb.height, boxstyle="round,pad=0.05", fc="yellow", ec="k", lw=2)
+        fancy = FancyBboxPatch(bb.p0, bb.width, bb.height, boxstyle="round,pad=0.05", fc=fc, ec="k", lw=2)
         axis.add_patch(fancy)
 
         bbox = axis.text(*(boxXYAxisFraction + np.array((-0.03, 0))),
                 text, 
-                #bbox=bboxParams,
-                size=15, color="black",
+                size=15, color=textColor,
                 horizontalalignment="left", 
                 verticalalignment="center")  
+        
+        if eventText:
+            bbox = axis.text(*(boxXYAxisFraction + np.array((0.25, -0.025))),
+                eventText.upper(),
+                size=12, color=textColor,
+                horizontalalignment="left", 
+                verticalalignment="center")
 
         boxXYAxisFraction += np.array((0,-rowHeight))  
         #break
