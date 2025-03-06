@@ -170,15 +170,14 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
     axis.set_ylim(yMin-2, yMax+2)
     axis.yaxis.set_major_locator(plt.MultipleLocator(5))
 
-    
     #Add labels
     df_tmp = df[['Date', 'Temperature_K']].copy()
     df_tmp = df_tmp.dropna()
     xy = (df_tmp["Date"].iloc[-1], df_tmp["Temperature_K"].iloc[-1])
-    axis.annotate("Salon:\n"+str(xy[1]),
+    axis.annotate(str(xy[1]),
                   xy=xy,
                   xycoords='data',
-                  xytext=(0.83,0.58),
+                  xytext=(0.83,0.78),
                   textcoords='axes fraction', 
                   fontsize=15, 
                   color='red',
@@ -188,15 +187,23 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
     df_tmp = df[['Date', 'Temperature_Solar']].copy()
     df_tmp = df_tmp.dropna()
     xy = (df_tmp["Date"].iloc[-1], df_tmp["Temperature_Solar"].iloc[-1])
-    axis.annotate("Balkon:\n"+str(xy[1]),
+    axis.annotate(str(xy[1]),
                   xy=xy,
                   xycoords='data',
-                  xytext=(1.01, -0.75),
+                  xytext=(0.83, 0.55),
                   textcoords='axes fraction', 
                   fontsize=15, 
                   color='green',
                   weight='bold',
                   arrowprops=dict(arrowstyle="->"))
+
+    axis.legend(bbox_to_anchor=(1.01, -0.3),
+                loc='upper left', borderaxespad=0.,
+                markerfirst=False,
+                labelcolor="linecolor",
+                frameon=False,
+                alignment="left",
+                prop={"weight":"bold"})
     
 ################################################
 ################################################
@@ -217,10 +224,10 @@ def addCO2Data(axis, csvSensorFile):
     df_tmp = df[['Date', 'CO2_K']].copy()
     df_tmp = df_tmp.dropna()
     xy = (df_tmp["Date"].iloc[-1], df_tmp["CO2_K"].iloc[-1])
-    axis.annotate("Salon:\n"+str(xy[1]),
+    axis.annotate(str(xy[1]),
                   xy=xy,
                   xycoords='data',
-                  xytext=(0.8,0.58),
+                  xytext=(0.8,0.78),
                   textcoords='axes fraction', 
                   fontsize=15, 
                   color='red',
@@ -273,7 +280,9 @@ def addTimeTable(axis, json_file, date):
         if subject == "godzina wychowawcza":
             subject = "godz. wych."
         elif subject == "wychowanie fizyczne":
-            subject = "WF"    
+            subject = "WF"
+        elif "native" in subject:
+            subject = "ang. - NS" 
        
         text += subject
         #event 
