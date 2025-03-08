@@ -1,4 +1,4 @@
-import time, random
+import time, random, sys
 
 from Camera import Camera
 from Detector import Detector
@@ -14,7 +14,6 @@ from termcolor import colored
 #TensorFlow
 import tensorflow as tf
 import keras
-import keras
 
 #Pandas
 import pandas as pd
@@ -22,6 +21,45 @@ import pandas as pd
 #Kaggle
 import kagglehub
 
+
+##########################################
+picam = Camera()
+detector = Detector('blaze_face_short_range.tflite')
+servos = Servos() 
+servos.setPosition((150,30))
+###########################################
+def sweepCamera():
+
+    initAngle = (150,30)
+
+    step = 15 ##degrees
+    for iStep in range(50):
+        iXStep = random.randint(-3,3)
+        iYStep = random.randint(-4,4)
+        if iStep==0:
+            testAngle = initAngle
+        else:
+            testAngle = initAngle + step*np.array((iXStep,iYStep))
+        servos.setPosition(testAngle)
+        time.sleep(0.25)
+        image = picam.getRGBImage()
+        faces = detector.getVideoResponse(image)
+        print("\r",testAngle, end=' ',)
+        print("\r",len(faces), end=' ',)
+        if len(faces) > 0:
+           return testAngle
+
+    servos.setPosition(initAngle)
+    return None
+###################################
+def createEmptyDataset(featuresShape):
+
+    dummyOutput = np.zeros(featuresShape).flatten()
+    dummyLabel = np.array((-1))
+    date = np.array(pd.Timestamp.now())
+    dataRow = np.hstack((date, dummyLabel, dummyOutput)).reshape(1,-1)
+    df = pd.DataFrame(data=dataRow, columns=["date", "label"]+["feature_"+str(i) for i in range((dataRow.size-2)) ])
+    return df
 ###################################
 def test():
 
@@ -32,11 +70,18 @@ def test():
     print(colored("Model path:","blue"),model_path)
     interpreter = tf.lite.Interpreter(model_path=model_path+"/1.tflite")
     interpreter.allocate_tensors()
+    featuresShape = interpreter.get_output_details()[0]['shape']
 
-    picam = Camera()
-    detector = Detector('blaze_face_short_range.tflite')
-    servos = Servos() 
-    servos.setPosition((130,40))
+    ###
+    df = createEmptyDataset(featuresShape)
+    df.to_parquet('df.parquet.gzip',compression='gzip') 
+    ###
+    '''
+    file_path = '/home/akalinow/scratch/RPi/FaceFollow/df.parquet_Artur.gzip'
+    df = pd.read_parquet(file_path)
+    features = df.drop(columns=['date',label'])
+    '''
+    nExamples = len(df)
 
     picamv2_fov = np.array((60, 30))
     deltaPos = np.zeros(2)
@@ -46,25 +91,10 @@ def test():
         return
     
     servos.setPosition(initialCamPos)
-    '''
-    dummyRow = np.zeros((1280)),
-    df = pd.DataFrame(data=dummyRow)
-    df["label"] = np.full((1), -1)
-    df.to_parquet('df.parquet.gzip',compression='gzip') 
-    '''
-    file_path = '/home/akalinow/scratch/RPi/FaceFollow/df.parquet_Artur.gzip'
-    file_path = '/home/akalinow/scratch/RPi/FaceFollow/df.parquet_Artur.gzip'
-    df = pd.read_parquet(file_path)
-    features = df.drop(columns=['label'])
-    nExamples = len(df)
-
-    personCounter = {"Wojtek":0,
-                     "Artur":0,
-                    "Unknown":0}
     
     while True:
         start_time = time.time()
-        time.sleep(0.2)
+        time.sleep(0.5)
         image = picam.getRGBImage()
         faces = detector.getVideoResponse(image)
 
@@ -86,7 +116,7 @@ def test():
             end_time = time.time()
             fps = 1.0 / (end_time - start_time)
             draw_fps(rgb_annotated_image, fps)
-            cv2.imwrite("test_annotated.jpg", rgb_annotated_image)
+            cv2.imwrite("test_annotated_with_face.jpg", rgb_annotated_image)
             ######################################################
 
             #Identify face
@@ -96,33 +126,26 @@ def test():
             interpreter.set_tensor(input['index'], input_data)
             interpreter.invoke()
             output = interpreter.get_tensor(output['index'])
-
             response = id_model(output)
-            if response<10:
-                print(colored("Artur!","blue"))
-                personCount["Artur"] +=1
-            elif response>10:
-                print(colored("Wojtek!","blue"))
-                 personCount["Wojtek"] +=1
-            else:
-                print(colored("Unknown!","blue"))
-                 personCount["Unknown"] +=1
+            label = (response<10).numpy().astype(int)
 
-            new_item_label = 0
-            new_item_label = np.array(new_item_label).reshape((1,1))
-            dataRow = np.concatenate( (output, new_item_label), axis=1)
-            df.loc[len(df)+20] = dataRow[0]
-            print("Number of examples:",len(df))
-            if len(df)-nExamples>500:
+            if len(df)-nExamples<10:             
+                label = np.array(label.flatten())
+                date = np.array(pd.Timestamp.now())
+                dataRow = np.hstack((date, label, output.flatten()))
+                df.loc[len(df)] = dataRow
+                print(colored("\rNumber of examples:","blue"),len(df), end="")
+                sys.stdout.flush()
+            else:
                 break
             #######################################################
         else:
-            cv2.imwrite("test_annotated.jpg", image)
+            cv2.imwrite("test_annotated_without_face.jpg", image)
 
     lastPos = servos.getPosition()
-    print("Last camera position:",lastPos)
-    print("")
-    print(df.describe())
+    print(colored("Last camera position:","blue"),lastPos)
+    print(colored("Person presence:","blue"))
+    print(df["label"].describe())
     df.to_parquet('df.parquet.gzip',
                    compression='gzip')  
 

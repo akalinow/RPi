@@ -32,8 +32,9 @@ class Camera:
         self.picam.start() 
         time.sleep(1)
     ################################
-    def __del__(self): 
-        self.picam.stop()
+    def __del__(self):
+        pass
+        #self.picam.stop()
     ################################
     def getFile(self, filename):
         self.picam.capture_file(filename)
