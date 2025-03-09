@@ -129,7 +129,7 @@ def test():
             response = id_model(output)
             label = (response<10).numpy().astype(int)
 
-            if len(df)-nExamples<10:             
+            if len(df)-nExamples<1500:             
                 label = np.array(label.flatten())
                 date = np.array(pd.Timestamp.now())
                 dataRow = np.hstack((date, label, output.flatten()))
