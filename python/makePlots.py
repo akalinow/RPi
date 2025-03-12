@@ -157,9 +157,9 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
 
     #Plot fall
     ax2 = axis.twinx()  
-    color = 'blue'
+    color = 'navy'
     ax2.set_ylabel('Opad [mm/h]', color=color)
-    ax2.fill_between(df_forecast['Date'],0.0, df_forecast['Fall'], alpha=0.7)
+    ax2.fill_between(df_forecast['Date'],0.0, df_forecast['Fall']*3.6)
     ax2.tick_params(axis='y', labelcolor=color)
     ax2.set_ylim(0, 5)
 
