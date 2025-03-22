@@ -1,4 +1,5 @@
 import time, random, sys
+from datetime import timedelta
 
 from Camera import Camera
 from Detector import Detector
@@ -7,6 +8,12 @@ from image_functions import *
 
 import numpy as np
 import cv2
+
+#ToF sensor
+import VL53L0X
+
+#Ligh sensor
+import TSL2591
 
 #Nice printout imports
 from termcolor import colored
@@ -27,10 +34,10 @@ picam = Camera()
 detector = Detector('blaze_face_short_range.tflite')
 servos = Servos() 
 servos.setPosition((150,30))
+status = servos.loadPosition()
+print(colored("Camera position recvery status", "blue"), status)
 ###########################################
-def sweepCamera():
-
-    initAngle = (150,30)
+def sweepCamera(initAngle):
 
     step = 15 ##degrees
     for iStep in range(50):
@@ -86,17 +93,44 @@ def test():
     picamv2_fov = np.array((60, 30))
     deltaPos = np.zeros(2)
 
-    initialCamPos = sweepCamera()
+    initialCamPos = sweepCamera(servos.getPosition())
     if initialCamPos is None:
         return
     
     servos.setPosition(initialCamPos)
-    
+
+    # Create a VL53L0X object
+    tof_sensor = VL53L0X.VL53L0X(i2c_bus=3,i2c_address=0x29)
+    tof_sensor.open()
+    tof_sensor.start_ranging(VL53L0X.Vl53l0xAccuracyMode.LONG_RANGE)
+
+    # Create light sensor
+    light_sensor = TSL2591.TSL2591()
+
+    last_time = time.monotonic()
+    updateInterval = 10 #seconds
     while True:
         start_time = time.time()
-        time.sleep(0.5)
+        ####
+        if time.monotonic() - last_time>updateInterval:
+            print("AAA")
+            last_time = time.monotonic()
+        ####    
+        
+        time.sleep(2)
+        camPos = sweepCamera(servos.getPosition())
+        if np.all(camPos)!=None:
+            servos.setPosition(camPos)
+        else:
+            continue
+        
         image = picam.getRGBImage()
         faces = detector.getVideoResponse(image)
+
+        lux = light_sensor.Lux
+        distance = tof_sensor.get_distance()/10 #cm
+
+        print(colored(" Light:","blue"), lux, colored("Distance:","blue"), distance)
 
         if len(faces) > 0:
             face_pos = faces[0][0:2]
@@ -129,6 +163,9 @@ def test():
             response = id_model(output)
             label = (response<10).numpy().astype(int)
 
+            #Count face presence
+
+            #Save face data
             if len(df)-nExamples<500:             
                 label = np.array(label.flatten())
                 date = np.array(pd.Timestamp.now())
@@ -140,10 +177,16 @@ def test():
                 break
             #######################################################
         else:
+            draw_fps(image, fps)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            draw_fps(image, fps)
             cv2.imwrite("test_annotated_without_face.jpg", image)
 
-    lastPos = servos.getPosition()
-    print(colored("Last camera position:","blue"),lastPos)
+    tof_sensor.stop_ranging()
+    tof_sensor.close()
+    
+    servos.savePosition()
+
     print(colored("Person presence:","blue"))
     print(df["label"].describe())
     df.to_parquet('df.parquet.gzip',

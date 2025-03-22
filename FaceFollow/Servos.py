@@ -61,6 +61,22 @@ class Servos:
     def __str__(self): 
         message = (colored("H:","blue")+"{} "+colored("V:","blue")+"{}").format(self.currAngle["h"], self.currAngle['v'])
         return message    
+    #################################
+    def savePosition(self, filePath="camera_pos.txt"):
+        pos = self.getPosition()
+        np.savetxt(filePath, pos, delimiter=" ")
+    #################################
+    def loadPosition(self, filePath="camera_pos.txt"):
+        status = 0
+        try:
+            with open(filePath) as file:
+                pos = np.loadtxt(filePath, delimiter=" ")
+                self.setPosition(pos)
+                status = 0
+        except FileNotFoundError:
+            status = -1
+        return status
+    #################################
 
 #################################   
 #################################  
