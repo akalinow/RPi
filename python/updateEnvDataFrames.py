@@ -10,14 +10,14 @@ import glob
 ################################################
 def fetch_prom_data(query):
 
-    from secrets_ak import PROM_URL, PROM_USER_ID, PROM_API_KEY
+    from secrets_ak import PROM_URL, PROM_USER_ID, READ_KEY
 
     query = PROM_URL + '?query=' + query
 
     try: 
         response = requests.get(url=query,
                                 headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                                auth = (PROM_USER_ID, PROM_API_KEY)
+                                auth = (PROM_USER_ID, READ_KEY)
         )
     except OSError as e:
         print(e)
