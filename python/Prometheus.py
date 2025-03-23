@@ -37,7 +37,7 @@ class Prometheus:
     ################################################
     def put(self, values):
 
-        body = 'RPi,source=RPi '+values
+        body = 'RPi,bar_label=RPi,source=RPi '+values
         print(body)
 
         try: 

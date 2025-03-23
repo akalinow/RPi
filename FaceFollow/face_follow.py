@@ -9,6 +9,10 @@ from image_functions import *
 import numpy as np
 import cv2
 
+##add path to the modules
+import sys
+sys.path.append('../python')
+
 #ToF sensor
 import VL53L0X
 

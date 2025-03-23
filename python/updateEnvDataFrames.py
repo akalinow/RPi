@@ -1,37 +1,23 @@
 #!/bin/python3
 
-import gc
-import requests, json, datetime
+import json, datetime
 import pandas as pd
 import numpy as np
 import glob
+from Prometheus import Prometheus
 
 ################################################
 ################################################
 def fetch_prom_data(query):
 
-    from secrets_ak import PROM_URL, PROM_USER_ID, READ_KEY
-
-    query = PROM_URL + '?query=' + query
-
-    try: 
-        response = requests.get(url=query,
-                                headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                                auth = (PROM_USER_ID, READ_KEY)
-        )
-    except OSError as e:
-        print(e)
-        return {}
-            
-    status_code = response.status_code
-    if status_code != 200:
-        print('Error:', status_code)
+    prom = Prometheus()
+    data = prom.get(query)
+    if data is None:
         return {}
 
-    json_data = json.loads(response.text)
+    json_data = json.loads(data)
     if not len(json_data['data']['result']):
                return
-    #print(json_data)
 
     data = {}
     for result in json_data['data']['result']:
