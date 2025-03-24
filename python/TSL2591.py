@@ -252,6 +252,8 @@ class TSL2591:
         
         Cpl = (atime * again) / LUX_DF
         #lux1 = (channel_0 - (2 * channel_1)) / Cpl
+        if channel_0==0:
+            return int(0)
         lux1 = ((channel_0 - channel_1) * (1.0 - (channel_1 /channel_0))) / Cpl;
         # lux2 = ((0.6 * channel_0) - (channel_1)) / Cpl
         # This is a two segment lux equation where the first 

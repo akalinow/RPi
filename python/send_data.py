@@ -1,5 +1,7 @@
 #!/bin/python3
 
+import time
+
 #Nice printout imports
 from termcolor import colored
 
@@ -23,10 +25,30 @@ def collect_data():
     # Create light sensor
     light_sensor = TSL2591.TSL2591()
 
+    #Read sensors
     lux = light_sensor.Lux
-    distance = tof_sensor.get_distance()/10 #cm
+
+    nSamples = 10
+    distance = 0
+    count = 0
+    #average measurement over about nSamples
+    for iTry in range(nSamples):
+        measurement = tof_sensor.get_distance()/10 #cm
+        if measurement<819: #object within range
+            distance += measurement
+            count +=1
+    
+    if nSamples-count>nSamples//2:
+        distance = 819
+    else:
+        distance /= count
+
+    #Format output string
+    data = "light="+str(lux)+","
+    data +="distance="+str(distance)
 
     print(colored(" Light:","blue"), lux, colored("Distance:","blue"), distance)
+    return data
 ##################################################
 def send_data(data):
 
@@ -38,7 +60,7 @@ def test_module():
             
     if __name__ == '__main__':
         data = collect_data()
-        #send_data(data)
+        send_data(data)
 #############################################
 test_module()
 #############################################

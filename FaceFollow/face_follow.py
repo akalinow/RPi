@@ -9,9 +9,7 @@ from image_functions import *
 import numpy as np
 import cv2
 
-##add path to the modules
-import sys
-sys.path.append('../python')
+sys.path.append("../python")
 
 #ToF sensor
 import VL53L0X
@@ -165,7 +163,7 @@ def test():
             interpreter.invoke()
             output = interpreter.get_tensor(output['index'])
             response = id_model(output)
-            label = (response<10).numpy().astype(int)
+            label = (response<0).numpy().astype(int)
 
             #Count face presence
 
