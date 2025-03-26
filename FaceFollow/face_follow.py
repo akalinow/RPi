@@ -104,7 +104,7 @@ def test():
     # Create a VL53L0X object
     tof_sensor = VL53L0X.VL53L0X(i2c_bus=3,i2c_address=0x29)
     tof_sensor.open()
-    tof_sensor.start_ranging(VL53L0X.Vl53l0xAccuracyMode.LONG_RANGE)
+    tof_sensor.start_ranging(VL53L0X.Vl53l0xAccuracyMode.BEST)
 
     # Create light sensor
     light_sensor = TSL2591.TSL2591()
@@ -151,25 +151,26 @@ def test():
             # Visualization parameters
             end_time = time.time()
             fps = 1.0 / (end_time - start_time)
-            draw_fps(rgb_annotated_image, fps)
+            #draw_fps(rgb_annotated_image, fps)
             cv2.imwrite("test_annotated_with_face.jpg", rgb_annotated_image)
             ######################################################
 
             #Identify face
-            input_data = np.expand_dims(annotated_image/255, axis=0).astype(np.float32)
+            input_data = np.expand_dims(rgb_annotated_image/255, axis=0).astype(np.float32)
             input = interpreter.get_input_details()[0]
             output = interpreter.get_output_details()[0]
             interpreter.set_tensor(input['index'], input_data)
             interpreter.invoke()
             output = interpreter.get_tensor(output['index'])
             response = id_model(output)
-            label = (response<0).numpy().astype(int)
+            print(colored("Face Id label:","blue"), response)
 
             #Count face presence
 
             #Save face data
-            if len(df)-nExamples<500:             
-                label = np.array(label.flatten())
+            if len(df)-nExamples<5:
+                label = 0
+                #label = np.array(label.flatten())
                 date = np.array(pd.Timestamp.now())
                 dataRow = np.hstack((date, label, output.flatten()))
                 df.loc[len(df)] = dataRow

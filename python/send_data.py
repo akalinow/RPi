@@ -20,7 +20,7 @@ def collect_data():
     # Create a VL53L0X object
     tof_sensor = VL53L0X.VL53L0X(i2c_bus=3,i2c_address=0x29)
     tof_sensor.open()
-    tof_sensor.start_ranging(VL53L0X.Vl53l0xAccuracyMode.LONG_RANGE)
+    tof_sensor.start_ranging(VL53L0X.Vl53l0xAccuracyMode.BEST)
 
     # Create light sensor
     light_sensor = TSL2591.TSL2591()

@@ -50,11 +50,11 @@ def drawFocusPoints(image, focusPoints):
         keypoint_px = _normalized_to_pixel_coordinates(keypoint_x, keypoint_y,
                                                      width, height)
         
-        cv2.circle(image, keypoint_px, 5, (0, 0, 255), -1)
+        #cv2.circle(image, keypoint_px, 5, (0, 0, 255), -1)
 
         new_res = (224, 224)
         bbox = point[2:6].astype(int)
-        image_cropped = image[bbox[1]:bbox[1]+bbox[3], bbox[0]:bbox[0]+bbox[2]]
+        image_cropped = image[bbox[1]:bbox[1]+int(1.2*bbox[3]), bbox[0]:bbox[0]+int(1.1*bbox[2])]
         image_resized = cv2.resize(image_cropped,dsize=new_res, interpolation = cv2.INTER_CUBIC)
     return image_resized
 ####################################################################
@@ -76,7 +76,7 @@ def visualize(
     # Draw bounding_box
     bbox = detection.bounding_box
     start_point = bbox.origin_x, bbox.origin_y
-    end_point = bbox.origin_x + bbox.width, bbox.origin_y + bbox.height
+    end_point = bbox.origin_x + 1.05*bbox.width, bbox.origin_y + 1.1*bbox.height
     cv2.rectangle(annotated_image, start_point, end_point, TEXT_COLOR, 3)
 
     # Draw keypoints
