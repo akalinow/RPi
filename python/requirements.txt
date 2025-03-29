@@ -1,0 +1,14 @@
+tensorflow
+mediapipe
+jupyterlab
+termcolor
+rpi-lgpio
+pandas
+parquet
+pyarrow
+fastparquet
+mss
+google-genai 
+opencv-python 
+pyaudio 
+pillow
