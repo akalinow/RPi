@@ -27,6 +27,7 @@ def loadPandas(cvsFile):
     df = pd.DataFrame()
     if glob.glob(pd_path):
         df = pd.read_csv(pd_path, parse_dates=['Date'], date_format="ISO8601")
+        df["Date"] = pd.to_datetime(df["Date"], utc=True)
     return df
 ################################################
 ################################################
@@ -65,7 +66,8 @@ def makePlots():
          'axes.labelsize': 'x-large',
          'axes.titlesize':'x-large',
          'xtick.labelsize':'x-large',
-         'ytick.labelsize':'x-large'}
+         'ytick.labelsize':'x-large',
+         'timezone':'Europe/Warsaw'}
     plt.rcParams.update(params)
 
     fig = plt.figure(figsize=(8.0, 4.8)) 
@@ -109,7 +111,7 @@ def addInfoBox(axis):
 ################################################
 def addAnnotations(axis, addDates=True):
 
-    axis.xaxis.axis_date(tz='Europe/Warsaw')
+    #axis.xaxis.axis_date(tz='Europe/Warsaw')
 
     #Annotate dates
     if addDates:
@@ -150,7 +152,7 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
     if df.empty:
         return
     
-    #Plot temperature
+    #Plot temperature   
     axis.plot_date(df_forecast['Date'], df_forecast["Temperature"]-273.15, label='ICM', color='black', fmt=".")
     axis.plot_date(df['Date'], df["Temperature_K"], label='Salon', color='red', fmt=".")
     axis.plot_date(df['Date'], df["Temperature_Solar"], label='Balkon', color='green', fmt=".")

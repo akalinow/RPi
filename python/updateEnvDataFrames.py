@@ -37,9 +37,9 @@ def updateMeasurementPandas():
     pd_path = "./sensor_data.csv"
     df = pd.DataFrame()
     if glob.glob(pd_path):
-        df = pd.read_csv(pd_path, parse_dates=["Date"], date_format='mixed', skiprows=[14701, 14702, 14703, 14704])
+        df = pd.read_csv(pd_path, parse_dates=["Date"], date_format='mixed)
         df.index.rename('Date', inplace=True)
-        df.index = pd.to_datetime(df["Date"])
+        df.index = pd.to_datetime(df["Date"], utc=True)
         df.drop(columns=["Date"], inplace=True)
 
     measurements = ["Temperature", "CO2"]
@@ -50,6 +50,7 @@ def updateMeasurementPandas():
             json.dump(data, f) 
         ##append df
         df_tmp = pd.read_json(fileName, convert_dates="Date", orient='records')
+        df_tmp['Date'] = pd.to_datetime(df_tmp["Date"], utc=True)
         df_tmp.index.rename('Date', inplace=True)
         df = pd.concat([df, df_tmp], axis=0, join='outer')
         #df.drop_duplicates(inplace=True)
