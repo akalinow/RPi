@@ -24,7 +24,6 @@ def fetch_prom_data(query):
         lastValue = result['values'][-1]
         timestamp = int(lastValue[0])
         timestamp = datetime.datetime.fromtimestamp(timestamp).astimezone().isoformat()
-        
         value = lastValue[1]
         tag = query.split('_')[-1].split('[')[0]   +"_"+result['metric']['bar_label']
         data[tag] = {timestamp:value}
@@ -38,7 +37,7 @@ def updateMeasurementPandas():
     pd_path = "./sensor_data.csv"
     df = pd.DataFrame()
     if glob.glob(pd_path):
-        df = pd.read_csv(pd_path, parse_dates=["Date"])
+        df = pd.read_csv(pd_path, parse_dates=["Date"], date_format='mixed', skiprows=[14701, 14702, 14703, 14704])
         df.index.rename('Date', inplace=True)
         df.index = pd.to_datetime(df["Date"])
         df.drop(columns=["Date"], inplace=True)

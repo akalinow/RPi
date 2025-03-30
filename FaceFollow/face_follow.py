@@ -110,16 +110,16 @@ def test():
     light_sensor = TSL2591.TSL2591()
 
     last_time = time.monotonic()
-    updateInterval = 10 #seconds
+    updateInterval = 1 #seconds
     while True:
         start_time = time.time()
         ####
         if time.monotonic() - last_time>updateInterval:
-            print("AAA")
+            #print("AAA")
             last_time = time.monotonic()
         ####    
         
-        time.sleep(2)
+        #time.sleep(1)
         camPos = sweepCamera(servos.getPosition())
         if np.all(camPos)!=None:
             servos.setPosition(camPos)
@@ -168,7 +168,7 @@ def test():
             #Count face presence
 
             #Save face data
-            if len(df)-nExamples<5:
+            if len(df)-nExamples<500:
                 label = 0
                 #label = np.array(label.flatten())
                 date = np.array(pd.Timestamp.now())

@@ -51,11 +51,19 @@ def drawFocusPoints(image, focusPoints):
                                                      width, height)
         
         #cv2.circle(image, keypoint_px, 5, (0, 0, 255), -1)
+        #cv2.circle(image, point[2:4].astype(int)-50, 5, (255,0,0), -1)
 
         new_res = (224, 224)
         bbox = point[2:6].astype(int)
-        image_cropped = image[bbox[1]:bbox[1]+int(1.2*bbox[3]), bbox[0]:bbox[0]+int(1.1*bbox[2])]
+        anchor = np.array((bbox[1], bbox[0]))
+        size = np.array((bbox[3], bbox[2])).astype(int)
+        anchor -= (size*0.2).astype(int)
+        anchor -= (50, 0)
+        size += (size*0.4).astype(int)
+        anchor = np.where(anchor>0, anchor, 0)
+        image_cropped = image[anchor[0]:anchor[0]+size[0], anchor[1]:anchor[1]+size[1]]
         image_resized = cv2.resize(image_cropped,dsize=new_res, interpolation = cv2.INTER_CUBIC)
+        #image_resized = image_cropped
     return image_resized
 ####################################################################
 def visualize(
