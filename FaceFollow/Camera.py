@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import time
+import numpy as np
 
 #Nice printout imports
 from termcolor import colored # type: ignore
@@ -44,7 +45,10 @@ class Camera:
         image = self.picam.capture_array()       
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         return rgb_image
- 
+
+    #################################
+    def getFOV(self):
+        return np.array((60, 30))
     #################################
     def __str__(self): 
         message = (colored("Camera:","blue")+"{}").format(self.picam.still_configuration)

@@ -1,4 +1,5 @@
 from typing import Tuple, Union
+import time
 
 import math
 import numpy as np
@@ -29,7 +30,7 @@ def _normalized_to_pixel_coordinates(
   y_px = min(math.floor(normalized_y * image_height), image_height - 1)
   return x_px, y_px
 ####################################################################
-def draw_fps(image, fps):
+def annotateImage(image, fps):
    
   # Show the FPS
   # Visualization parameters
@@ -40,30 +41,43 @@ def draw_fps(image, fps):
   _FONT_THICKNESS = 1
   fps_text = 'FPS = ' + str(int(fps))
   text_location = (_LEFT_MARGIN, _ROW_SIZE)
-  cv2.putText(image, fps_text, text_location, cv2.FONT_HERSHEY_PLAIN,
+
+  timestamp_text = time.strftime("%a, %d %b %Y %H:%M:%S",time.localtime()) 
+    
+  cv2.putText(image, timestamp_text, text_location, cv2.FONT_HERSHEY_PLAIN,
               _FONT_SIZE, _TEXT_COLOR, _FONT_THICKNESS)
+  return image
+####################################################################
+def cropFace(image, focusPoints):
+    width, height = image.shape[1], image.shape[0]
+    new_res = (224, 224)
+    
+    keypoint_x, keypoint_y = focusPoints[0], focusPoints[1]
+    keypoint_px = _normalized_to_pixel_coordinates(keypoint_x, keypoint_y,
+                                                    width, height)
+    
+    bbox = focusPoints[2:6].astype(int)
+    anchor = np.array((bbox[1], bbox[0]))
+    size = np.array((bbox[3], bbox[2])).astype(int)
+    anchor -= (size*0.2).astype(int)
+    anchor -= (50, 0)
+    size += (size*0.4).astype(int)
+    anchor = np.where(anchor>0, anchor, 0)
+    image_cropped = image[anchor[0]:anchor[0]+size[0], anchor[1]:anchor[1]+size[1]]
+    image_resized = cv2.resize(image_cropped,dsize=new_res, interpolation = cv2.INTER_CUBIC)
+    return image_resized
+    
 ####################################################################
 def drawFocusPoints(image, focusPoints):
     for point in focusPoints:
         width, height = image.shape[1], image.shape[0]
-        keypoint_x, keypoint_y = point[0], point[1]
+        keypoint_x, keypoint_y = focusPoints[0], focusPoints[1]
         keypoint_px = _normalized_to_pixel_coordinates(keypoint_x, keypoint_y,
                                                      width, height)
         
-        #cv2.circle(image, keypoint_px, 5, (0, 0, 255), -1)
-        #cv2.circle(image, point[2:4].astype(int)-50, 5, (255,0,0), -1)
+        cv2.circle(image, keypoint_px, 5, (0, 0, 255), -1)
+        cv2.circle(image, point[2:4].astype(int)-50, 5, (255,0,0), -1)
 
-        new_res = (224, 224)
-        bbox = point[2:6].astype(int)
-        anchor = np.array((bbox[1], bbox[0]))
-        size = np.array((bbox[3], bbox[2])).astype(int)
-        anchor -= (size*0.2).astype(int)
-        anchor -= (50, 0)
-        size += (size*0.4).astype(int)
-        anchor = np.where(anchor>0, anchor, 0)
-        image_cropped = image[anchor[0]:anchor[0]+size[0], anchor[1]:anchor[1]+size[1]]
-        image_resized = cv2.resize(image_cropped,dsize=new_res, interpolation = cv2.INTER_CUBIC)
-        #image_resized = image_cropped
     return image_resized
 ####################################################################
 def visualize(

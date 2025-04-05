@@ -4,6 +4,7 @@ from datetime import timedelta
 from Camera import Camera
 from Detector import Detector
 from Servos import Servos   
+from Identification import Identificator
 from image_functions import *
 
 import numpy as np
@@ -37,7 +38,7 @@ detector = Detector('blaze_face_short_range.tflite')
 servos = Servos() 
 servos.setPosition((150,30))
 status = servos.loadPosition()
-print(colored("Camera position recvery status", "blue"), status)
+print(colored("Camera position recovery status", "blue"), status)
 ###########################################
 def sweepCamera(initAngle):
 
@@ -50,9 +51,11 @@ def sweepCamera(initAngle):
         else:
             testAngle = initAngle + step*np.array((iXStep,iYStep))
         servos.setPosition(testAngle)
-        time.sleep(0.25)
-        image = picam.getRGBImage()
-        faces = detector.getVideoResponse(image)
+        face = []
+        for iTry in range(4):
+            time.sleep(0.1)
+            image = picam.getRGBImage()
+            faces = detector.getVideoResponse(image)
         print("\r",testAngle, end=' ',)
         print("\r",len(faces), end=' ',)
         if len(faces) > 0:
@@ -72,24 +75,11 @@ def createEmptyDataset(featuresShape):
 ###################################
 def test():
 
-    id_model = keras.saving.load_model("model_A_vs_W.keras")
-
-    kaggle_model_path = "google/mobilenet-v3/tfLite/large-100-224-feature-vector"
-    model_path = kagglehub.model_download(kaggle_model_path)
-    print(colored("Model path:","blue"),model_path)
-    interpreter = tf.lite.Interpreter(model_path=model_path+"/1.tflite")
-    interpreter.allocate_tensors()
-    featuresShape = interpreter.get_output_details()[0]['shape']
-
-    ###
+    identificatorObj = Identificator()
+    featuresShape =  identificatorObj.getFeaturesShape()
+    
     df = createEmptyDataset(featuresShape)
     df.to_parquet('df.parquet.gzip',compression='gzip') 
-    ###
-    '''
-    file_path = '/home/akalinow/scratch/RPi/FaceFollow/df.parquet_Artur.gzip'
-    df = pd.read_parquet(file_path)
-    features = df.drop(columns=['date',label'])
-    '''
     nExamples = len(df)
 
     picamv2_fov = np.array((60, 30))
@@ -103,34 +93,39 @@ def test():
 
     # Create a VL53L0X object
     tof_sensor = VL53L0X.VL53L0X(i2c_bus=3,i2c_address=0x29)
-    tof_sensor.open()
-    tof_sensor.start_ranging(VL53L0X.Vl53l0xAccuracyMode.BEST)
+    #tof_sensor.open()
+    #tof_sensor.start_ranging(VL53L0X.Vl53l0xAccuracyMode.BEST)
 
     # Create light sensor
     light_sensor = TSL2591.TSL2591()
 
     last_time = time.monotonic()
-    updateInterval = 1 #seconds
+    updateInterval = 60 #seconds
     while True:
         start_time = time.time()
         ####
         if time.monotonic() - last_time>updateInterval:
+
+            #tof_sensor.stop_ranging()
+            #tof_sensor.close()
+            #tof_sensor.open()
+            #tof_sensor.start_ranging(VL53L0X.Vl53l0xAccuracyMode.BEST)
             #print("AAA")
             last_time = time.monotonic()
-        ####    
-        
-        #time.sleep(1)
+        #### 
+        '''
         camPos = sweepCamera(servos.getPosition())
         if np.all(camPos)!=None:
             servos.setPosition(camPos)
         else:
             continue
+        '''
         
         image = picam.getRGBImage()
         faces = detector.getVideoResponse(image)
 
         lux = light_sensor.Lux
-        distance = tof_sensor.get_distance()/10 #cm
+        distance = -1 #tof_sensor.get_distance()/10 #cm
 
         print(colored(" Light:","blue"), lux, colored("Distance:","blue"), distance)
 
@@ -147,7 +142,6 @@ def test():
             annotated_image = drawFocusPoints(image, faces)
             rgb_annotated_image = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
 
-            # Show the FPS
             # Visualization parameters
             end_time = time.time()
             fps = 1.0 / (end_time - start_time)
@@ -156,23 +150,15 @@ def test():
             ######################################################
 
             #Identify face
-            input_data = np.expand_dims(rgb_annotated_image/255, axis=0).astype(np.float32)
-            input = interpreter.get_input_details()[0]
-            output = interpreter.get_output_details()[0]
-            interpreter.set_tensor(input['index'], input_data)
-            interpreter.invoke()
-            output = interpreter.get_tensor(output['index'])
-            response = id_model(output)
-            print(colored("Face Id label:","blue"), response)
-
-            #Count face presence
+            features = identificatorObj.getFeatures(rgb_annotated_image)
+            idendity = identificatorObj.getIdentification(features).numpy().flatten()
+            print(colored("Face Id label:","blue"),idendity)
 
             #Save face data
-            if len(df)-nExamples<500:
+            if len(df)-nExamples<1000:
                 label = 0
-                #label = np.array(label.flatten())
                 date = np.array(pd.Timestamp.now())
-                dataRow = np.hstack((date, label, output.flatten()))
+                dataRow = np.hstack((date, idendity, features.flatten()))
                 df.loc[len(df)] = dataRow
                 print(colored("\rNumber of examples:","blue"),len(df), end="")
                 sys.stdout.flush()
@@ -180,7 +166,6 @@ def test():
                 break
             #######################################################
         else:
-            draw_fps(image, fps)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             draw_fps(image, fps)
             cv2.imwrite("test_annotated_without_face.jpg", image)

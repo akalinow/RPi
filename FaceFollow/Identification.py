@@ -47,8 +47,14 @@ class Identificator:
         
         features = self.getFeatures(rgb_image)
         ids = self.getIdentification(features)
-        return ids
-        
+
+        idendity = "Unknown"
+        if ids<-7:
+            idendity = "A"
+        elif ids>7:
+            idendity = "W"
+            
+        return idendity        
 #############################################
 #############################################
 def test_module():            
