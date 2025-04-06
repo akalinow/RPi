@@ -50,14 +50,14 @@ class Monitor:
 
         #Face identification class
         self.identificatorObj = Identificator()
-      
+
         #Prometheus exporter class
         self.prom = Prometheus()
-    
+
         #ToF VL53L0X coltrol
         self.tof_sensor = VL53L0X.VL53L0X(i2c_bus=3,i2c_address=0x29)
         self.tof_sensor.open()
-       
+
         #Light sensor control
         self.light_sensor = TSL2591.TSL2591()
 
@@ -68,6 +68,7 @@ class Monitor:
         self.rgb_face_patch = None
         self.faces = []
         self.image = None
+        print("Initialization done.")
     ####################################
     ####################################
     def __del__(self):
@@ -104,6 +105,7 @@ class Monitor:
         
         if len(self.faces)<=iFace:
             self.rgb_face_patch = None
+            return
             
         face_patch = cropFace(self.image, self.faces[iFace])
         self.rgb_face_patch = cv2.cvtColor(face_patch, cv2.COLOR_BGR2RGB) #to be removed
@@ -141,7 +143,9 @@ class Monitor:
         
         payload = "light="+str(light)+","
         payload +="distance="+str(distance)+","
-        payload +="id="+str(faceId)
+        if faceId!=None:
+            payload +="id="+str(faceId)
+            
         self.prom.put(payload)
         
         print(self)
@@ -150,10 +154,12 @@ class Monitor:
     def run(self):
 
         iFace = 0
+        
         while True:
             
             if self.getLight()<20:
                 print(colored("No light. Goint to sleep for 10'", "blue"))
+                self.sendData()
                 time.sleep(600)
                 
             self.findFaces()
