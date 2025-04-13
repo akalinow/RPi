@@ -5,7 +5,7 @@ import sys
 import time
 import math
 import smbus
-import RPi.GPIO as GPIO
+import gpiod
 
 ADDR                = (0x29)
 
@@ -81,10 +81,10 @@ class TSL2591:
     def __init__(self, address=ADDR):
         self.i2c = smbus.SMBus(1)
         self.address = address
-        
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setwarnings(False)
-        GPIO.setup(4, GPIO.IN)
+ 
+        #AK GPIO.setmode(GPIO.BCM)
+        #AK GPIO.setwarnings(False)
+        #AK GPIO.setup(4, GPIO.IN)
         
         self.ID = self.Read_Byte(ID_REGISTER)
         if(self.ID != 0x50):

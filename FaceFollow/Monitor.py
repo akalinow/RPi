@@ -116,7 +116,7 @@ class Monitor:
     def identifyFace(self, iFace):
 
         if not np.any(self.rgb_face_patch):
-            return None
+            return 0
         
         features = self.identificatorObj.getFeatures(self.rgb_face_patch)
         return self.identificatorObj.getIdentification(features).numpy().flatten()[0]
@@ -142,9 +142,8 @@ class Monitor:
         light = self.getLight()
         
         payload = "light="+str(light)+","
-        payload +="distance="+str(distance)+","
-        if faceId!=None:
-            payload +="id="+str(faceId)
+        payload +="distance="+str(distance)
+        payload +=",id="+str(faceId)
             
         self.prom.put(payload)
         
@@ -158,7 +157,7 @@ class Monitor:
         while True:
             
             if self.getLight()<20:
-                print(colored("No light. Goint to sleep for 10'", "blue"))
+                print(colored("No light. Going to sleep for 10'", "blue"))
                 self.sendData()
                 time.sleep(600)
                 

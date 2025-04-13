@@ -2,7 +2,7 @@ tensorflow
 mediapipe
 jupyterlab
 termcolor
-rpi-lgpio
+gpiod
 pandas
 parquet
 pyarrow
