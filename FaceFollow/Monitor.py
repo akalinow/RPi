@@ -30,6 +30,7 @@ from Camera import Camera
 from Detector import Detector
 from Servos import Servos   
 from Identification import Identificator
+from Display import Display
 from image_functions import *
 
 class Monitor:
@@ -61,8 +62,12 @@ class Monitor:
         #Light sensor control
         self.light_sensor = TSL2591.TSL2591()
 
+        #Display
+        self.display = Display()
+
         self.updateInterval = 600 #seconds
         self.last_time = time.monotonic()
+
 
         #Initialize images
         self.rgb_face_patch = None
@@ -150,6 +155,14 @@ class Monitor:
         print(self)
     ####################################
     ####################################
+    def displayData(self):
+
+        faceId = self.identifyFace(iFace)
+        message = "Id: {:3.2f}".format(faceId)
+        
+        self.display.displayName(message)
+    ####################################
+    ####################################
     def run(self):
 
         iFace = 0
@@ -163,6 +176,8 @@ class Monitor:
                 
             self.findFaces()
             self.followFace(iFace)
+            if self.identifyFace(iFace):
+                self.displayData()
 
             if time.monotonic() - self.last_time>self.updateInterval:
                 self.last_time = time.monotonic()
