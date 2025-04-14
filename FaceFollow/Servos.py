@@ -1,6 +1,5 @@
 #!/usr/bin/python
 import time
-import RPi.GPIO as GPIO
 from PCA9685 import PCA9685
 
 import numpy as np

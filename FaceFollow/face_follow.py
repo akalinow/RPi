@@ -141,8 +141,8 @@ def test():
             faceAngle = camPos + deltaPos
             servos.setPosition(faceAngle)
 
-            annotated_image = drawFocusPoints(image, faces)
-            rgb_annotated_image = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
+            #annotated_image = drawFocusPoints(image, faces[0])
+            rgb_annotated_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
             # Visualization parameters
             end_time = time.time()
@@ -152,6 +152,7 @@ def test():
             ######################################################
 
             #Identify face
+            face_patch = cropFace(rgb_annotated_image, faces[0])
             features = identificatorObj.getFeatures(rgb_annotated_image)
             idendity = identificatorObj.getIdentification(features).numpy().flatten()
             print(colored("Face Id label:","blue"),idendity)
@@ -185,4 +186,6 @@ def test():
                    compression='gzip')  
 
 ###################################
+test()
+##
 test()
