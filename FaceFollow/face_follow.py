@@ -5,6 +5,7 @@ from Camera import Camera
 from Detector import Detector
 from Servos import Servos   
 from Identification import Identificator
+from Display import Display
 from image_functions import *
 
 import numpy as np
@@ -39,6 +40,7 @@ servos = Servos()
 servos.setPosition((150,30))
 status = servos.loadPosition()
 print(colored("Camera position recovery status", "blue"), status)
+display = Display()
 ###########################################
 def sweepCamera(initAngle):
 
@@ -153,9 +155,11 @@ def test():
             features = identificatorObj.getFeatures(rgb_annotated_image)
             idendity = identificatorObj.getIdentification(features).numpy().flatten()
             print(colored("Face Id label:","blue"),idendity)
+            message = "Id: {:3.2f}".format(idendity)
+            display.displayName(message)
 
             #Save face data
-            if len(df)-nExamples<1000:
+            if len(df)-nExamples<500:
                 label = 0
                 date = np.array(pd.Timestamp.now())
                 dataRow = np.hstack((date, idendity, features.flatten()))

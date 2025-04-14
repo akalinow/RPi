@@ -66,7 +66,7 @@ class Monitor:
         self.display = Display()
 
         self.updateInterval = 600 #seconds
-        self.last_time = time.monotonic()
+        self.last_time = -1
 
 
         #Initialize images
@@ -101,24 +101,31 @@ class Monitor:
         self.servos.setPosition(faceAngle)
     ####################################
     ####################################
-    def saveFace(self, iFace):
+    def cropFace(self, iFace):
+
+        if len(self.faces)<=iFace:
+            self.rgb_face_patch = None
+            return
+        
+        face_patch = cropFace(self.image, self.faces[iFace])
+        self.rgb_face_patch = cv2.cvtColor(face_patch, cv2.COLOR_BGR2RGB) #to be removed
+    ####################################
+    ####################################
+    def saveFace(self):
 
         framePath = "frames/full_frame_{}.jpg".format(time.strftime("%d_%b_%Y%H_%M_%S",time.localtime()))
         rgb_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB) #to be removed
         #rgb_image = visualize(rgb_image, self.faces)
         cv2.imwrite(framePath, annotateImage(rgb_image, 1.0))
         
-        if len(self.faces)<=iFace:
-            self.rgb_face_patch = None
+        if not np.any(self.rgb_face_patch):
             return
             
-        face_patch = cropFace(self.image, self.faces[iFace])
-        self.rgb_face_patch = cv2.cvtColor(face_patch, cv2.COLOR_BGR2RGB) #to be removed
         framePath = "frames/face_{}.jpg".format(time.strftime("%d_%b_%Y%H_%M_%S",time.localtime()))
         cv2.imwrite(framePath, annotateImage(self.rgb_face_patch, 1.0))
     ####################################
     ####################################
-    def identifyFace(self, iFace):
+    def identifyFace(self):
 
         if not np.any(self.rgb_face_patch):
             return 0
@@ -142,7 +149,7 @@ class Monitor:
     def sendData(self):
 
         iFace = 0
-        faceId = self.identifyFace(iFace)
+        faceId = self.identifyFace()
         distance = self.getDistance()
         light = self.getLight()
         
@@ -157,7 +164,7 @@ class Monitor:
     ####################################
     def displayData(self):
 
-        faceId = self.identifyFace(iFace)
+        faceId = self.identifyFace()
         message = "Id: {:3.2f}".format(faceId)
         
         self.display.displayName(message)
@@ -176,12 +183,12 @@ class Monitor:
                 
             self.findFaces()
             self.followFace(iFace)
-            if self.identifyFace(iFace):
-                self.displayData()
-
+            self.cropFace(iFace)
+            
             if time.monotonic() - self.last_time>self.updateInterval:
                 self.last_time = time.monotonic()
-                self.saveFace(iFace)
+                self.displayData()
+                self.saveFace()
                 self.sendData()
                 #break
             
@@ -192,7 +199,7 @@ class Monitor:
         message = ""
         message += colored("Light: ","blue") + str(self.getLight()) + " lux "
         message += colored("Distance: ","blue") + str(self.getDistance()) + " cm " 
-        message += colored("Face id: ","blue") + str(self.identifyFace(0))
+        message += colored("Face id: ","blue") + str(self.identifyFace())
         #message += "\n"
         return message
 

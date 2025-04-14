@@ -22,7 +22,7 @@ class Display:
             font_path = '/scratch/akalinow/luma.examples/examples/fonts/DejaVuSansMono.ttf'
             font = ImageFont.truetype(font_path, 20)
             draw.rectangle(self.device.bounding_box, outline="white", fill="black")
-            draw.text((20, 20), name, fill="white", font=font)
+            draw.text((15, 20), name, fill="white", font=font)
     ################################################
 
 ################################################        
