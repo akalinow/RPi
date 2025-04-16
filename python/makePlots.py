@@ -4,6 +4,7 @@ import datetime, json
 import pandas as pd
 import numpy as np
 import glob
+from zoneinfo import ZoneInfo
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -125,8 +126,11 @@ def addAnnotations(axis, addDates=True):
                     xycoords='axes fraction', fontsize=15, color='black')
     
     #draw vertical line at current time
+    tzinfo = ZoneInfo("Europe/Warsaw")
     x1 = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     x2 = (datetime.datetime.now() + datetime.timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    x1 = x1.astimezone(tzinfo)
+    x2 = x2.astimezone(tzinfo)
     axis.axvline(x1, color='black', linewidth=2, linestyle=':')
     axis.axvline(x2, color='black', linewidth=2, linestyle=':')
     
@@ -135,6 +139,9 @@ def addAnnotations(axis, addDates=True):
 
     xmin = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)
     xmax = (datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=2))
+
+    xmin = xmin.astimezone(tzinfo)
+    xmax = xmax.astimezone(tzinfo)
     axis.set_xlim(xmin, xmax)
  
     axis.xaxis.set_major_locator(mdates.HourLocator(interval=6))
