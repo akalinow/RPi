@@ -141,20 +141,18 @@ def test():
             faceAngle = camPos + deltaPos
             servos.setPosition(faceAngle)
 
-            #annotated_image = drawFocusPoints(image, faces[0])
             rgb_annotated_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
             # Visualization parameters
             end_time = time.time()
             fps = 1.0 / (end_time - start_time)
-            #draw_fps(rgb_annotated_image, fps)
-            cv2.imwrite("test_annotated_with_face.jpg", rgb_annotated_image)
+            cv2.imwrite("test_annotated_with_face.jpg",  annotateImage(rgb_annotated_image, 1.0))
             ######################################################
 
             #Identify face
             face_patch = cropFace(rgb_annotated_image, faces[0])
-            features = identificatorObj.getFeatures(rgb_annotated_image)
-            idendity = identificatorObj.getIdentification(features).numpy().flatten()
+            features = identificatorObj.getFeatures(face_patch)
+            idendity = identificatorObj.getIdentification(features).numpy().flatten()[0]
             print(colored("Face Id label:","blue"),idendity)
             message = "Id: {:3.2f}".format(idendity)
             display.displayName(message)
@@ -171,9 +169,7 @@ def test():
                 break
             #######################################################
         else:
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            draw_fps(image, fps)
-            cv2.imwrite("test_annotated_without_face.jpg", image)
+            cv2.imwrite("test_annotated_without_face.jpg", annotateImage(rgb_annotated_image, 1.0))
 
     tof_sensor.stop_ranging()
     tof_sensor.close()

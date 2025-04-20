@@ -177,6 +177,7 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
 
     yMin, yMax = axis.get_ylim()
     axis.set_ylim(yMin-2, yMax+2)
+    axis.set_ylim(5, 35)
     axis.yaxis.set_major_locator(plt.MultipleLocator(5))
 
     #Add labels
@@ -186,11 +187,13 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
     axis.annotate(str(xy[1]),
                   xy=xy,
                   xycoords='data',
-                  xytext=(0.83,0.78),
+                  xytext=(0.83,0.70),
                   textcoords='axes fraction', 
                   fontsize=15, 
                   color='red',
                   weight='bold',
+                  bbox=dict(boxstyle="round,pad=0.3",
+                      fc="lightblue", ec="steelblue", lw=2),
                   arrowprops=dict(arrowstyle="->"))
     
     df_tmp = df[['Date', 'Temperature_Solar']].copy()
@@ -199,11 +202,13 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
     axis.annotate(str(xy[1]),
                   xy=xy,
                   xycoords='data',
-                  xytext=(0.83, 0.55),
+                  xytext=(0.83, 0.20),
                   textcoords='axes fraction', 
                   fontsize=15, 
                   color='green',
                   weight='bold',
+                  bbox=dict(boxstyle="round,pad=0.3",
+                      fc="lightblue", ec="steelblue", lw=2),
                   arrowprops=dict(arrowstyle="->"))
 
     axis.legend(bbox_to_anchor=(1.01, -0.3),
@@ -227,7 +232,7 @@ def addCO2Data(axis, csvSensorFile):
 
     #Adapt axes
     axis.set(xlabel='', ylabel=r'CO$_{2}$ [ppk]',title='')
-    axis.set_ylim(300, 3000)
+    axis.set_ylim(200, 3000)
 
     #Add labels
     df_tmp = df[['Date', 'CO2_K']].copy()
@@ -236,14 +241,16 @@ def addCO2Data(axis, csvSensorFile):
     axis.annotate(str(xy[1]),
                   xy=xy,
                   xycoords='data',
-                  xytext=(0.8,0.78),
+                  xytext=(0.8,0.70),
                   textcoords='axes fraction', 
                   fontsize=15, 
                   color='red',
                   weight='bold',
+                  bbox=dict(boxstyle="round,pad=0.3",
+                  fc="lightblue", ec="steelblue", lw=2),
                   arrowprops=dict(arrowstyle="->"))
     
-    yticks = np.arange(300, 3000, 500)
+    yticks = np.arange(200, 3000, 500)
     ylabels = [f'{y/1000:1.1f}' for y in yticks]
     axis.set_yticks(yticks, labels=ylabels)
     #draw horizontal line at 350 (background level)

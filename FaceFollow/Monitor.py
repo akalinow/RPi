@@ -85,7 +85,7 @@ class Monitor:
     def findFaces(self):
 
         self.image = self.picam.getRGBImage()
-        #self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+        self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
         self.faces = self.detector.getVideoResponse(self.image)
     ####################################
     ####################################
@@ -108,14 +108,11 @@ class Monitor:
             return
         
         face_patch = cropFace(self.image, self.faces[iFace])
-        self.rgb_face_patch = cv2.cvtColor(face_patch, cv2.COLOR_BGR2RGB) #to be removed
     ####################################
     ####################################
     def saveFace(self):
 
         framePath = "frames/full_frame_{}.jpg".format(time.strftime("%d_%b_%Y%H_%M_%S",time.localtime()))
-        rgb_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB) #to be removed
-        #rgb_image = visualize(rgb_image, self.faces)
         cv2.imwrite(framePath, annotateImage(rgb_image, 1.0))
         
         if not np.any(self.rgb_face_patch):
@@ -184,6 +181,8 @@ class Monitor:
             self.findFaces()
             self.followFace(iFace)
             self.cropFace(iFace)
+
+            print(self.last_time, time.monotonic() - self.last_time, self.updateInterval)
             
             if time.monotonic() - self.last_time>self.updateInterval:
                 self.last_time = time.monotonic()
