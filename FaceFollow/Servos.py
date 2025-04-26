@@ -16,7 +16,7 @@ class Servos:
     servosId = {"h":0, "v":1}
 
     # Initial position
-    restPos = {"h":165, "v":70}
+    restPos = {"h":90, "v":70}
 
     ####################################
     def __init__(self):
@@ -83,7 +83,7 @@ def test_module():
             
     if __name__ == '__main__':  
         servosObj = Servos()
-        servosObj.setPosition((90,85))    
+        servosObj.setPosition((95,60))    
         print(servosObj)  
 ##################################
 test_module()

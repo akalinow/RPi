@@ -141,7 +141,8 @@ def test():
             faceAngle = camPos + deltaPos
             servos.setPosition(faceAngle)
 
-            rgb_annotated_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            #rgb_annotated_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            rgb_annotated_image = image
 
             # Visualization parameters
             end_time = time.time()
@@ -184,4 +185,3 @@ def test():
 ###################################
 test()
 ##
-test()
