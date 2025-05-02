@@ -66,9 +66,12 @@ class Monitor:
         #Display
         self.display = Display()
 
+        #Prometheus update rate
         self.updateInterval = 600 #seconds
         self.last_time = -1
 
+        #Face velocity
+        self.deltaPos = np.array((0.0, 0.0))
 
         #Initialize images
         self.face_patch = None
@@ -92,13 +95,16 @@ class Monitor:
     ####################################
     def followFace(self, iFace):
 
-        if len(self.faces)<=iFace:
-            return
+        if len(self.faces)>iFace:
+            face_pos = self.faces[iFace][0:2]
+            self.deltaPos = (face_pos - 0.5)*self.picam.getFOV()/2  
+        else:
+            self.deltaPos *=0.6
 
-        face_pos = self.faces[iFace][0:2]
-        camPos = self.servos.getPosition()
-        deltaPos = (face_pos - 0.5)*self.picam.getFOV()/2
-        faceAngle = camPos + deltaPos*1.3
+        if np.sum(self.deltaPos**2)<0.1:
+            return
+            
+        faceAngle = self.servos.getPosition() + self.deltaPos*2.5
         self.servos.setPosition(faceAngle)
     ####################################
     ####################################
@@ -126,11 +132,15 @@ class Monitor:
     def identifyFace(self):
 
         if not np.any(self.face_patch):
-            return 0
+            return -1, -1
         
         features = self.identificatorObj.getFeatures(self.face_patch)
-        result =  self.identificatorObj.getIdentification(features).numpy()
-        return np.argmax(result)
+        result =  self.identificatorObj.getIdentification(features).numpy()[0]
+
+        index = np.argmax(result)
+        prob = result[index]
+        
+        return index, prob
     ####################################
     ####################################
     def getDistance(self):
@@ -147,7 +157,7 @@ class Monitor:
     def sendData(self):
 
         iFace = 0
-        faceId = self.identifyFace()
+        faceId, _ = self.identifyFace()
         distance = self.getDistance()
         light = self.getLight()
         
@@ -162,8 +172,13 @@ class Monitor:
     ####################################
     def displayData(self):
 
-        faceId = self.identifyFace()
-        message = "Id: {:3.2f}".format(faceId)
+        faceId, prob = self.identifyFace()
+  
+        idMap = {-1:"No face",
+                 0: "Artur",
+                 1: "Wojtek",
+                 2: "NN"}
+        message = idMap[faceId] + "\n"+"p={:3.2f}".format(prob)
         
         self.display.displayName(message)
     ####################################
@@ -174,7 +189,7 @@ class Monitor:
         
         while True:
             
-            if self.getLight()<1:
+            if np.mean(self.image)<20:
                 print(colored("No light. Going to sleep for 10'", "blue"))
                 self.sendData()
                 time.sleep(600)

@@ -20,9 +20,9 @@ class Display:
     def displayName(self, name):
         with canvas(self.device) as draw:
             font_path = '/scratch/akalinow/luma.examples/examples/fonts/DejaVuSansMono.ttf'
-            font = ImageFont.truetype(font_path, 20)
+            font = ImageFont.truetype(font_path, 18)
             draw.rectangle(self.device.bounding_box, outline="white", fill="black")
-            draw.text((15, 20), name, fill="white", font=font)
+            draw.text((15, 10), name, fill="white", font=font)
     ################################################
 
 ################################################        

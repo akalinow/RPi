@@ -10,7 +10,7 @@ from termcolor import colored # type: ignore
 class Servos:
 
     # Movement range [deg]
-    angleRange = {"h": (0, 180), "v": (5,95)}
+    angleRange = {"h": (0, 180), "v": (20,70)}
 
     # Horizontal/Vertical servos id 
     servosId = {"h":0, "v":1}
@@ -83,7 +83,7 @@ def test_module():
             
     if __name__ == '__main__':  
         servosObj = Servos()
-        servosObj.setPosition((95,60))    
+        servosObj.setPosition((90,70))    
         print(servosObj)  
 ##################################
 test_module()
