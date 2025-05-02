@@ -129,8 +129,8 @@ class Monitor:
             return 0
         
         features = self.identificatorObj.getFeatures(self.face_patch)
-        result =  self.identificatorObj.getIdentification(features).numpy()         
-        return self.identificatorObj.getIdentification(features).numpy().flatten()[0]
+        result =  self.identificatorObj.getIdentification(features).numpy()
+        return np.argmax(result)
     ####################################
     ####################################
     def getDistance(self):
@@ -182,7 +182,7 @@ class Monitor:
             self.findFaces()
             self.followFace(iFace)
             self.cropFace(iFace)
-            #self.displayData()
+            self.displayData()
             #print(self)
             
             if time.monotonic() - self.last_time>self.updateInterval:

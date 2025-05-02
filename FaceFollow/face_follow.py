@@ -153,16 +153,16 @@ def test():
             #Identify face
             face_patch = cropFace(rgb_annotated_image, faces[0])
             features = identificatorObj.getFeatures(face_patch)
-            idendity = identificatorObj.getIdentification(features).numpy().flatten()[0]
-            print(colored("Face Id label:","blue"),idendity)
-            message = "Id: {:3.2f}".format(idendity)
+            idendity = identificatorObj.getIdentification(features).numpy().flatten()
+            message = "{:3.2f} {:3.2f} {:3.2f}".format(*list(idendity))
+            print(colored("Face Id label:","blue"), message)
             display.displayName(message)
 
             #Save face data
             if len(df)-nExamples<500:
                 label = 0
                 date = np.array(pd.Timestamp.now())
-                dataRow = np.hstack((date, idendity, features.flatten()))
+                dataRow = np.hstack((date, np.argmax(idendity), features.flatten()))
                 df.loc[len(df)] = dataRow
                 print(colored("\rNumber of examples:","blue"),len(df), end="")
                 sys.stdout.flush()

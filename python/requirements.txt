@@ -4,6 +4,7 @@ jupyterlab
 termcolor
 gpiod
 pandas
+scikit-learn
 parquet
 pyarrow
 fastparquet
