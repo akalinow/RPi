@@ -188,13 +188,14 @@ class Monitor:
         iFace = 0
         
         while True:
+
+            self.findFaces()
             
             if np.mean(self.image)<20:
                 print(colored("No light. Going to sleep for 10'", "blue"))
                 self.sendData()
                 time.sleep(600)
                 
-            self.findFaces()
             self.followFace(iFace)
             self.cropFace(iFace)
             self.displayData()
