@@ -70,7 +70,7 @@ if sys.version_info < (3, 11, 0):
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 SEND_SAMPLE_RATE = 16000
-RECEIVE_SAMPLE_RATE = 24000
+RECEIVE_SAMPLE_RATE = 44100
 CHUNK_SIZE = 1024
 
 MODEL = "models/gemini-2.0-flash-exp"

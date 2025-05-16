@@ -77,6 +77,13 @@ class Monitor:
         self.face_patch = None
         self.faces = []
         self.image = None
+
+        #Face counter
+        self.faceIdByFraction = -1
+        self.faceIndex = -1
+        self.faceProb = -1
+        self.faceCounter = np.zeros((3,))
+        
         print("Initialization done.")
     ####################################
     ####################################
@@ -104,7 +111,7 @@ class Monitor:
         if np.sum(self.deltaPos**2)<0.1:
             return
             
-        faceAngle = self.servos.getPosition() + self.deltaPos*2.5
+        faceAngle = self.servos.getPosition() + self.deltaPos*1.0
         self.servos.setPosition(faceAngle)
     ####################################
     ####################################
@@ -132,32 +139,44 @@ class Monitor:
     def identifyFace(self):
 
         if not np.any(self.face_patch):
-            return -1, -1
-        
-        features = self.identificatorObj.getFeatures(self.face_patch)
-        result =  self.identificatorObj.getIdentification(features).numpy()[0]
+            self.faceIndex = -1
+            self.faceProb = -1
+        else: 
+            features = self.identificatorObj.getFeatures(self.face_patch)
+            result =  self.identificatorObj.getIdentification(features).numpy()[0]
+            self.faceIndex = np.argmax(result)
+            self.faceProb = result[self.faceIndex]
+            self.faceCounter[self.faceIndex]+=1
+    ####################################
+    ####################################
+    def getFaceIdFraction(self):
 
-        index = np.argmax(result)
-        prob = result[index]
-        
-        return index, prob
+        totalCount = np.sum(self.faceCounter)
+        if totalCount<1:
+            totalCount = 1
+            
+        fraction = self.faceCounter/totalCount
+        index = np.argmax(fraction)
+        value = fraction[index]
+        if value > 0.1:
+            self.faceIdByFraction = index
+        else:
+            self.faceIdByFraction = -1
     ####################################
     ####################################
     def getDistance(self):
-        
         distance = self.tof_sensor.get_distance()/10 #cm
         return distance
     ####################################
     ####################################
     def getLight(self):
-        
         return self.light_sensor.Lux
     ####################################
     ####################################
     def sendData(self):
 
         iFace = 0
-        faceId, _ = self.identifyFace()
+        faceId = self.faceIdByFraction
         distance = self.getDistance()
         light = self.getLight()
         
@@ -166,19 +185,15 @@ class Monitor:
         payload +=",id="+str(faceId)
             
         self.prom.put(payload)
-        
-        print(self)
     ####################################
     ####################################
     def displayData(self):
-
-        faceId, prob = self.identifyFace()
   
         idMap = {-1:"No face",
                  0: "Artur",
                  1: "Wojtek",
                  2: "NN"}
-        message = idMap[faceId] + "\n"+"p={:3.2f}".format(prob)
+        message = idMap[self.faceIndex] + "\n"+"p={:3.2f}".format(self.faceProb)
         
         self.display.displayName(message)
     ####################################
@@ -193,19 +208,27 @@ class Monitor:
             
             if np.mean(self.image)<20:
                 print(colored("No light. Going to sleep for 10'", "blue"))
+                self.faceCounter = np.zeros((3,))
                 self.sendData()
                 time.sleep(600)
                 
             self.followFace(iFace)
             self.cropFace(iFace)
+            self.identifyFace()
             self.displayData()
+            #self.getFaceIdFraction()
             #print(self)
             
             if time.monotonic() - self.last_time>self.updateInterval:
                 self.last_time = time.monotonic()
+                self.getFaceIdFraction()
                 self.displayData()
                 self.saveFace()
                 self.sendData()
+                if np.sum(self.faceCounter)<10:
+                    self.servos.loadPosition()
+                print(self)
+                self.faceCounter = np.zeros((3,))
             
     ####################################
     ####################################
@@ -214,7 +237,8 @@ class Monitor:
         message = ""
         message += colored("Light: ","blue") + str(self.getLight()) + " lux "
         message += colored("Distance: ","blue") + str(self.getDistance()) + " cm " 
-        message += colored("Face id: ","blue") + str(self.identifyFace())
+        message += colored("Face id. Instant: ","blue") + str(self.faceIndex) + " "
+        message += colored("by fraction: ","blue") + str(self.faceIdByFraction)
         #message += "\n"
         return message
 
