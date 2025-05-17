@@ -1,0 +1,26 @@
+# service name:     jupyter.service 
+# path:             /lib/systemd/system/jupyter.service
+
+# After Ubuntu 16.04, Systemd becomes the default.
+# Ref: https://gist.github.com/whophil/5a2eab328d2f8c16bb31c9ceaf23164f
+
+[Unit]
+Description=Face monitor service
+
+[Service]
+Type=simple
+PIDFile=/run/face_monitor.pid
+
+EnvironmentFile=/home/akalinow/scratch/venv/pyvenv.cfg
+
+ExecStart=/home/akalinow/scratch/venv/bin/python3 /home/akalinow/scratch/RPi/FaceFollow/Monitor.py
+
+User=akalinow
+Group=akalinow
+WorkingDirectory=/home/akalinow/scratch/RPi/FaceFollow/
+Restart=always
+RestartSec=10
+#KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target

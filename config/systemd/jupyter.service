@@ -1,0 +1,27 @@
+# service name:     jupyter.service 
+# path:             /lib/systemd/system/jupyter.service
+
+# After Ubuntu 16.04, Systemd becomes the default.
+# Ref: https://gist.github.com/whophil/5a2eab328d2f8c16bb31c9ceaf23164f
+
+[Unit]
+Description=Jupyter lab Server
+
+[Service]
+Type=simple
+PIDFile=/run/jupyter.pid
+
+EnvironmentFile=/home/akalinow/scratch/venv/pyvenv.cfg
+
+# Jupyter Notebook: change PATHs as needed for your system
+ExecStart=/home/akalinow/scratch/venv/bin/python3 -m jupyter lab
+
+User=akalinow
+Group=akalinow
+WorkingDirectory=/home/akalinow
+Restart=always
+RestartSec=10
+#KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target
