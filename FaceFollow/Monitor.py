@@ -1,5 +1,6 @@
-import time, random, sys
+import time, random, sys, datetime
 from datetime import timedelta
+
 
 import numpy as np
 import cv2
@@ -188,12 +189,17 @@ class Monitor:
     ####################################
     ####################################
     def displayData(self):
-  
+
         idMap = {-1:"No face",
                  0: "Artur",
                  1: "Wojtek",
                  2: "NN"}
-        message = idMap[self.faceIndex] + "\n"+"p={:3.2f}".format(self.faceProb)
+
+        timestamp = datetime.datetime.now().strftime('%H:%M:%S')
+        
+        message =  idMap[self.faceIndex] + " " + timestamp + "\n"
+        message += "p={:3.2f}".format(self.faceProb) + "\n"
+        message += "d={:d} [cm]".format(int(self.getDistance()))
         
         self.display.displayName(message)
     ####################################
@@ -213,16 +219,18 @@ class Monitor:
                 time.sleep(600)
                 
             self.followFace(iFace)
-            self.cropFace(iFace)
-            self.identifyFace()
-            self.displayData()
-            #self.getFaceIdFraction()
-            #print(self)
-            
+            #Face identification every 10''
+            if int(time.monotonic())%10==0:
+                self.cropFace(iFace)
+                self.identifyFace()
+                self.displayData()
+                #self.getFaceIdFraction()
+                #print(self)
+
+            #Send data to Prometheus every self.updateInterval
             if time.monotonic() - self.last_time>self.updateInterval:
                 self.last_time = time.monotonic()
                 self.getFaceIdFraction()
-                self.displayData()
                 self.saveFace()
                 self.sendData()
                 if np.sum(self.faceCounter)<10:

@@ -1,5 +1,6 @@
 librus_apix
 tensorflow
+kagglehub
 mediapipe
 jupyterlab
 termcolor
@@ -14,4 +15,4 @@ google-genai
 opencv-python 
 pyaudio 
 pillow
-luma
+luma.oled

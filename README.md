@@ -15,7 +15,9 @@ A toy code for a raspberry pi camera usage:
 
 ```Bash
 sudo apt install portaudio19-dev
+sudo apt install bluez-alsa-utils
 sudo dpkg-reconfigure locales
+sudo systemctl disable bluealsa
 cd RPi
 sudo cp config/pulse/default.pa /etc/pulse
 sudo cp config/boot/config.txt /boot/firmware/config.txt
@@ -26,6 +28,7 @@ python3 -m venv --system-site-packages ./venv
 source venv/bin/activate
 pip install -r python/requirements.txt
 pip3 install git+https://github.com/pimoroni/VL53L0X-python.git
+cp python/TSL2591.py venv/lib/python3.11/site-packages
 ```
 
 The venv has to use system packages as there are issue witn installing picamera2 from pip.

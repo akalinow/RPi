@@ -230,7 +230,7 @@ class AudioLoop:
             format=FORMAT,
             channels=CHANNELS,
             rate=RECEIVE_SAMPLE_RATE,
-            output_device_index=2,
+            output_device_index=1,
             output=True,
         )
         while True:
