@@ -11,10 +11,10 @@ Description=Jupyter lab Server
 Type=simple
 PIDFile=/run/jupyter.pid
 
-EnvironmentFile=/home/akalinow/scratch/venv/pyvenv.cfg
+EnvironmentFile=/home/akalinow/scratch/RPi/venv/pyvenv.cfg
 
 # Jupyter Notebook: change PATHs as needed for your system
-ExecStart=/home/akalinow/scratch/venv/bin/python3 -m jupyter lab
+ExecStart=/home/akalinow/scratch/RPi/venv/bin/python3 -m jupyter lab
 
 User=akalinow
 Group=akalinow

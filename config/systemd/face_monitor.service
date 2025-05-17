@@ -11,9 +11,9 @@ Description=Face monitor service
 Type=simple
 PIDFile=/run/face_monitor.pid
 
-EnvironmentFile=/home/akalinow/scratch/venv/pyvenv.cfg
+EnvironmentFile=/home/akalinow/scratch/RPi/venv/pyvenv.cfg
 
-ExecStart=/home/akalinow/scratch/venv/bin/python3 /home/akalinow/scratch/RPi/FaceFollow/Monitor.py
+ExecStart=/home/akalinow/scratch/RPi/venv/bin/python3 /home/akalinow/scratch/RPi/FaceFollow/Monitor.py
 
 User=akalinow
 Group=akalinow

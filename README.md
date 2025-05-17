@@ -7,16 +7,22 @@ RaspberryPi projects
 A toy code for a raspberry pi camera usage:
 
 - [x] following a face. 
-- [ ] face is recognised unsing a [mobilenet_v3](https://www.kaggle.com/models/google/mobilenet-v3/tfLite/large-100-224-feature-vector-metadata) model features. 
+- [x] face is recognised unsing a [mobilenet_v3](https://www.kaggle.com/models/google/mobilenet-v3/tfLite/large-100-224-feature-vector-metadata) model features. 
 - [ ] chat using [Google Gemini API ](https://ai.google.dev/gemini-api/docs/quickstart?lang=python) 
-- [ ] voice synthesis using [Google Text-to-Speech](https://gtts.readthedocs.io/en/latest/index.html)
+- [ ] voice synthesis using [Google Gemini API](https://ai.google.dev/gemini-api/docs/quickstart?lang=python) 
 
 ### Install instructions
 
 ```Bash
-python3 -m venv --system-site-packages /home/akalinow/scratch/venv
+sudo apt install portaudio19-dev
+cd RPi
+sudo cp config/pulse/default.pa /etc/pulse
+sudo cp config/boot/config.txt /boot/firmware/config.txt
+sudo cp config/systemd/* /lib/systemd/system/
+sudo systemctl enable jupyter.service
+python3 -m venv --system-site-packages ./venv
 source venv/bin/activate
-pip install -r FaceFollow/requirements.txt
+pip install -r python/requirements.txt
 ```
 
 The venv has to use system packages as there are issue witn installing picamera2 from pip.
