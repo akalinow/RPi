@@ -1,3 +1,4 @@
+librus_apix
 tensorflow
 mediapipe
 jupyterlab

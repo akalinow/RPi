@@ -15,21 +15,24 @@ A toy code for a raspberry pi camera usage:
 
 ```Bash
 sudo apt install portaudio19-dev
+sudo dpkg-reconfigure locales
 cd RPi
 sudo cp config/pulse/default.pa /etc/pulse
 sudo cp config/boot/config.txt /boot/firmware/config.txt
 sudo cp config/systemd/* /lib/systemd/system/
+sudo cp config/crontab/akalinow /var/spool/cron/crontabs
 sudo systemctl enable jupyter.service
 python3 -m venv --system-site-packages ./venv
 source venv/bin/activate
 pip install -r python/requirements.txt
+pip3 install git+https://github.com/pimoroni/VL53L0X-python.git
 ```
 
 The venv has to use system packages as there are issue witn installing picamera2 from pip.
 
-
 ### Run instructions
 ```Bash
+cd RPi
 source venv/bin/activate
 cd FaceFollow
 python face_follow.py
