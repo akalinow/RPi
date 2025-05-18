@@ -14,8 +14,7 @@ A toy code for a raspberry pi camera usage:
 ### Install instructions
 
 ```Bash
-sudo apt install portaudio19-dev
-sudo apt install bluez-alsa-utils
+sudo apt install portaudio19-dev bluez-alsa-utils vsftpd
 sudo dpkg-reconfigure locales
 sudo systemctl disable bluealsa
 cd RPi
@@ -24,6 +23,7 @@ sudo cp config/boot/config.txt /boot/firmware/config.txt
 sudo cp config/systemd/* /lib/systemd/system/
 sudo cp config/crontab/akalinow /var/spool/cron/crontabs
 sudo systemctl enable jupyter.service
+sudo systemctrl enable vsftpd.service
 python3 -m venv --system-site-packages ./venv
 source venv/bin/activate
 pip install -r python/requirements.txt
