@@ -190,18 +190,16 @@ class Monitor:
     ####################################
     def displayData(self):
 
-        idMap = {-1:"No face",
+        idMap = {-1:"Nobody",
                  0: "Artur",
                  1: "Wojtek",
-                 2: "NN"}
+                 2: "Unknown"}
 
-        timestamp = datetime.datetime.now().strftime('%H:%M:%S')
-        
-        message =  idMap[self.faceIndex] + " " + timestamp + "\n"
+        message =  idMap[self.faceIndex] + "\n"
         message += "p={:3.2f}".format(self.faceProb) + "\n"
         message += "d={:d} [cm]".format(int(self.getDistance()))
         
-        self.display.displayName(message)
+        self.display.displayMessage(message)
     ####################################
     ####################################
     def run(self):
@@ -216,6 +214,7 @@ class Monitor:
                 print(colored("No light. Going to sleep for 10'", "blue"))
                 self.faceCounter = np.zeros((3,))
                 self.sendData()
+                self.display.clear()
                 time.sleep(600)
                 
             self.followFace(iFace)
