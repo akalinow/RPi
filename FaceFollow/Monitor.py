@@ -103,15 +103,22 @@ class Monitor:
     ####################################
     def followFace(self, iFace):
 
-        if len(self.faces)>iFace:
-            face_pos = self.faces[iFace][0:2]
-            self.deltaPos = (face_pos - 0.5)*self.picam.getFOV()/2  
-        else:
+        #calculate mean face position
+        mean_face_pos = np.array([0.0, 0.0])
+        for face in self.faces:
+            mean_face_pos += face[0:2]/len(self.faces)
+            self.deltaPos = (mean_face_pos - 0.5)*self.picam.getFOV()/2
+
+        #No faces to follow. Continue movement from previous direction
+        #i.e. face dissaperaed quickly from the field of view
+        if len(self.faces)<1:
             self.deltaPos *=0.6
-            
+
+        #update too small, neglect it
         if np.sum(self.deltaPos**2)<1:
             return
-            
+
+        #update position    
         faceAngle = self.servos.getPosition() + self.deltaPos*1.0
         self.servos.setPosition(faceAngle)
     ####################################
