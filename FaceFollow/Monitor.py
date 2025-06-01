@@ -108,8 +108,8 @@ class Monitor:
             self.deltaPos = (face_pos - 0.5)*self.picam.getFOV()/2  
         else:
             self.deltaPos *=0.6
-
-        if np.sum(self.deltaPos**2)<0.1:
+            
+        if np.sum(self.deltaPos**2)<1:
             return
             
         faceAngle = self.servos.getPosition() + self.deltaPos*1.0

@@ -38,7 +38,7 @@ class Display:
                     timestamp = datetime.datetime.now().strftime('%H:%M:%S')
                     draw.text((70, 3), timestamp, fill="white", font=self.font_10)
             except:
-                self.__init__()
+                pass
             
     ################################################
     

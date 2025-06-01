@@ -60,6 +60,7 @@ import mss
 import argparse
 
 from google import genai
+from google.genai import types
 
 if sys.version_info < (3, 11, 0):
     import taskgroup, exceptiongroup
@@ -71,24 +72,58 @@ FORMAT = pyaudio.paInt16
 CHANNELS = 1
 SEND_SAMPLE_RATE = 16000
 RECEIVE_SAMPLE_RATE = 44100//2
+RECEIVE_SAMPLE_RATE = 48000//2
 CHUNK_SIZE = 1024
 
-MODEL = "models/gemini-2.0-flash-live-001"
+model = "models/gemini-2.0-flash-live-001"
 
 DEFAULT_MODE = "none"
 
 client = genai.Client(http_options={"api_version": "v1beta"})
 
 SYSTEM_INSTRUCTION="You are friendly robot assistant.  Your name is RPi. You look after a 12 year boy Wojtek. \
-                    Wojtek's father is Artur, mother is Monika. Wojtek likes to create machines in Minecraft, Rubik cube speedcubing, and riding a bike.\
+                    Wojtek's father is Artur, mother is Monika. Wojtek likes to create machines in Minecraft, play Geometry Dash. \
+                    Wojtek likes Rubik cube speedcubing, and riding a bike, to play chess. \
                     You are Wojtek's friend. You are here to help him with his homework, play games, and chat with him. \
+                    You have to make sure he is not sitting by the computer too long. \
                     Wojtek has long, light hair. Arthur has short dark hair and a beard."
 
-CONFIG = {"response_modalities": [ "AUDIO"],
+
+
+data = client.files.upload(file="test.txt",config=dict(mime_type='text/json'))
+#content = types.Content(role='user', parts=[{'fileData':data])
+
+config = types.LiveConnectConfig(
+    system_instruction=[SYSTEM_INSTRUCTION, data],
+    response_modalities=["AUDIO"],
+    #enable_affective_dialog=True,
+    speech_config=types.SpeechConfig(
+        voice_config=types.VoiceConfig(
+            prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Leda")
+        )
+    ),
+    context_window_compression=(
+        types.ContextWindowCompressionConfig(
+            sliding_window=types.SlidingWindow(),
+        )
+    ),
+    )
+
+'''
+config = {"response_modalities": [ "AUDIO"],
           "system_instruction": SYSTEM_INSTRUCTION,
+          "speechConfig": types.SpeechConfig(voice_config=types.VoiceConfig(
+                                            prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Leda")))
          }
+'''
 
 pya = pyaudio.PyAudio()
+
+output_device_index = 1
+for i in range(pya.get_device_count()):#list all available audio devices
+  dev = pya.get_device_info_by_index(i)
+  if dev['name']=='pulse':
+      output_device_index=i
 
 
 class AudioLoop:
@@ -104,6 +139,8 @@ class AudioLoop:
         self.receive_audio_task = None
         self.play_audio_task = None
 
+        self.timetable = client.files.upload(file="/home/akalinow/timetable.json",config=dict(mime_type='text/html'))
+
     async def send_text(self):
         while True:
             text = await asyncio.to_thread(
@@ -112,7 +149,9 @@ class AudioLoop:
             )
             if text.lower() == "q":
                 break
-            await self.session.send(input=text or ".", end_of_turn=True)
+            await self.session.send_client_content(turns=types.Content(role='user', 
+                                                                       parts=[types.Part(text=text or ".")])) 
+                                                                
 
     def _get_frame(self, cap):
         # Read the frameq
@@ -185,7 +224,8 @@ class AudioLoop:
     async def send_realtime(self):
         while True:
             msg = await self.out_queue.get()
-            await self.session.send(input=msg)
+            await self.session.send_realtime_input(media=types.Blob(**msg))            
+
 
     async def listen_audio(self):
         mic_info = pya.get_default_input_device_info()
@@ -230,7 +270,7 @@ class AudioLoop:
             format=FORMAT,
             channels=CHANNELS,
             rate=RECEIVE_SAMPLE_RATE,
-            output_device_index=1,
+            output_device_index=output_device_index,
             output=True,
         )
         while True:
@@ -240,10 +280,20 @@ class AudioLoop:
     async def run(self):
         try:
             async with (
-                client.aio.live.connect(model=MODEL, config=CONFIG) as session,
+                client.aio.live.connect(model=model, config=config) as session,
                 asyncio.TaskGroup() as tg,
             ):
                 self.session = session
+                #text = "Today is Sunday"
+
+                #session.generate_content(contents=[data])
+                #self.session.send(input=text)
+                #await session.send_client_content(turns=types.Content(role='user', parts=[types.Part.from_uri(data)]))
+                #await session.send_client_content(turns=types.Content(role='user', parts=[{'text':text}]))
+                #await session.send_client_content(turns=types.Content(role='user', parts=[{'fileData':data.uri}]))
+                #await session.send_client_content(turns=content)
+                #await session.send_client_content(turns={"role": "user", "parts": [{"file": data}]}, turn_complete=True) 
+                    
 
                 self.audio_in_queue = asyncio.Queue()
                 self.out_queue = asyncio.Queue()

@@ -71,7 +71,7 @@ def makePlots():
          'timezone':'Europe/Warsaw'}
     plt.rcParams.update(params)
 
-    fig = plt.figure(figsize=(8.0, 4.8)) 
+    fig = plt.figure(figsize=(8.0, 4.4)) 
     gs = GridSpec(3, 3, figure=fig)
 
     ax = fig.add_subplot(gs[:,0])
@@ -91,6 +91,11 @@ def makePlots():
     ax = fig.add_subplot(gs[1,1:])
     addAnnotations(ax, addDates=False)
     addCO2Data(ax, "sensor_data.csv")
+
+    ax = fig.add_subplot(gs[2,1:])
+    addAnnotations(ax, addDates=False)
+    addPresenceData(ax, "sensor_data.csv", id=0, label="AK", color="red")
+    addPresenceData(ax, "sensor_data.csv", id=1, label="WK", color="green")
     
     plt.subplots_adjust(right=0.88, left=0.0, top=0.95, bottom=0.1, hspace=0.5, wspace=0.4)
     plt.savefig('./temperature.jpg', dpi=100)
@@ -158,11 +163,6 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
     df_forecast = loadPandas(csvForecastFile)
     if df.empty:
         return
-    
-    #Plot temperature   
-    axis.plot_date(df_forecast['Date'], df_forecast["Temperature"]-273.15, label='ICM', color='black', fmt=".")
-    axis.plot_date(df['Date'], df["Temperature_K"], label='Salon', color='red', fmt=".")
-    axis.plot_date(df['Date'], df["Temperature_Solar"], label='Balkon', color='green', fmt=".")
 
     #Plot fall
     ax2 = axis.twinx()  
@@ -171,6 +171,11 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
     ax2.fill_between(df_forecast['Date'],0.0, df_forecast['Fall']*4.0) #rainfall given kg/m2/15 min convert to kg/m2/h 
     ax2.tick_params(axis='y', labelcolor=color)
     ax2.set_ylim(0, 5)
+      
+    #Plot temperature   
+    axis.plot_date(df_forecast['Date'], df_forecast["Temperature"]-273.15, label='ICM', color='black', fmt=".")
+    axis.plot_date(df['Date'], df["Temperature_K"], label='Salon', color='red', fmt=".")
+    axis.plot_date(df['Date'], df["Temperature_Solar"], label='Balkon', color='green', fmt=".")
 
     #Adapt axes
     axis.set(xlabel='', ylabel=r'Temp. $[^{\circ}$C]',title='')
@@ -258,6 +263,61 @@ def addCO2Data(axis, csvSensorFile):
 
 ################################################
 ################################################
+def addPresenceData(axis, csvSensorFile, id, label, color):
+
+    #Load data
+    df = loadPandas(csvSensorFile)
+    if df.empty:
+        return
+
+    mask = (df["id_RPi"]==id)
+
+    #Plot
+    axis.plot_date(df['Date'][mask], df["id_RPi"][mask]==id, label=label, color=color, fmt=".")
+   
+    #Adapt axes
+    axis.set(xlabel='', ylabel=r'Presence',title='')
+    axis.set_ylim(0, 1.1)
+
+    yticks = np.arange(0, 1.1, 1.0)
+    ylabels = [y for y in yticks]
+    axis.set_yticks(yticks, labels=ylabels)
+
+    #Count presence time during current day
+    midnight = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    midnight = pd.to_datetime(midnight, utc=True)
+    mask *= (df['Date']>=midnight) 
+ 
+    #Single count corresponds to 10'
+    countsToSeconds = 600.0
+    count = np.sum(df["id_RPi"][mask]==id)
+    if count<1:
+        return
+        
+    time = str(datetime.timedelta(seconds=count*countsToSeconds)).split(":")[:-1]
+    time = label+" "+":".join(time)
+    
+    #Add labels
+    df_tmp = df[['Date', 'id_RPi']].copy()
+    df_tmp = df_tmp.dropna()
+    
+    xy = (df_tmp["Date"].iloc[-1], df_tmp["id_RPi"][mask].iloc[-1])
+    #axis.text(x = 0.75, y = 0.70-id*0.5, s=time, fontsize=15, color=color, weight='bold', transform=axis.transAxes)
+    axis.annotate(time,
+                  xy=xy,
+                  xycoords='data',
+                  xytext=(0.75,0.70-id*0.5),
+                  textcoords='axes fraction', 
+                  fontsize=15, 
+                  color=color,
+                  weight='bold',
+                  bbox=dict(boxstyle="round,pad=0.3",
+                  fc="lightblue", ec="steelblue", lw=2),
+                  arrowprops=dict(arrowstyle="->", color="white"))
+
+       
+################################################
+################################################
 def addTimeTable(axis, json_file, date):
 
     #Hide axes
@@ -335,9 +395,6 @@ def addTimeTable(axis, json_file, date):
         boxXYAxisFraction += np.array((0,-rowHeight))  
         #break
 
-
-    
-    
     # hide axes
     #axis.axis('off')
     return

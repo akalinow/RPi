@@ -156,7 +156,7 @@ def test():
             idendity = identificatorObj.getIdentification(features).numpy().flatten()
             message = "{:3.2f} {:3.2f} {:3.2f}".format(*list(idendity))
             print(colored("Face Id label:","blue"), message)
-            display.displayName(message)
+            display.displayMessage(message)
 
             #Save face data
             if len(df)-nExamples<500:

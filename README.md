@@ -17,6 +17,8 @@ A toy code for a raspberry pi camera usage:
 sudo apt install portaudio19-dev bluez-alsa-utils vsftpd
 sudo dpkg-reconfigure locales
 sudo systemctl disable bluealsa
+pactl list #find name of the BT speaker
+sudo pactl set-card-profile bluez_card.00_A4_1C_B0_CE_E6 headset-head-unit
 cd RPi
 sudo cp config/pulse/default.pa /etc/pulse
 sudo cp config/boot/config.txt /boot/firmware/config.txt
@@ -29,6 +31,7 @@ source venv/bin/activate
 pip install -r python/requirements.txt
 pip3 install git+https://github.com/pimoroni/VL53L0X-python.git
 cp python/TSL2591.py venv/lib/python3.11/site-packages
+python3 -m ipykernel install --user --name=venv
 ```
 
 The venv has to use system packages as there are issue witn installing picamera2 from pip.

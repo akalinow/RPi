@@ -42,9 +42,9 @@ def updateMeasurementPandas():
         df.index = pd.to_datetime(df["Date"], utc=True)
         df.drop(columns=["Date"], inplace=True)
 
-    measurements = ["Temperature", "CO2"]
+    measurements = ["env_data_Temperature[2h]", "env_data_CO2[2h]", "RPi_id[2h]"]
     for aMeasurement in measurements:
-        data = fetch_prom_data("env_data_"+aMeasurement+"[2h]")
+        data = fetch_prom_data(aMeasurement)
         fileName = './sensor_data_'+aMeasurement+'.json'
         with open(fileName, 'w') as f:
             json.dump(data, f) 
@@ -55,7 +55,6 @@ def updateMeasurementPandas():
         df = pd.concat([df, df_tmp], axis=0, join='outer')
         #df.drop_duplicates(inplace=True)
         
-    
     #print(df)  
     df.to_csv(pd_path)
 ##################################################
