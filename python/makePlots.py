@@ -270,27 +270,44 @@ def addPresenceData(axis, csvSensorFile, id, label, color):
     if df.empty:
         return
 
+    #Merge id and presence fraction rows
+    agg_id = pd.NamedAgg(column="id_RPi", aggfunc="min")
+    agg_fraction = pd.NamedAgg(column="fraction_RPi", aggfunc="min")
+    df_merged = df.groupby(df["Date"]).agg(id_RPi=agg_id, fraction_RPi=agg_fraction)
+    df_merged.dropna(how='any', inplace=True)
+    df = df_merged
+    df["Date"] = df.index
+
+    #Select person
     mask = (df["id_RPi"]==id)
 
     #Plot
-    axis.plot_date(df['Date'][mask], df["id_RPi"][mask]==id, label=label, color=color, fmt=".")
+    x = df["Date"][mask]
+    y = (df["id_RPi"][mask]==id)
+    axis.plot_date(x, y, label=label, color=color, fmt=".")
+    #axis.plot(x, y, label=label, color=color)
    
     #Adapt axes
     axis.set(xlabel='', ylabel=r'Presence',title='')
     axis.set_ylim(0, 1.1)
 
+    xmin = datetime.datetime.now().replace(hour=21, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)
+    xmax = (datetime.datetime.now().replace(hour=8, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1))
+    axis.set_xlim(xmin, xmax)
+
     yticks = np.arange(0, 1.1, 1.0)
-    ylabels = [y for y in yticks]
+    ylabels = [yTicks for yTicks in yticks]
     axis.set_yticks(yticks, labels=ylabels)
 
     #Count presence time during current day
     midnight = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     midnight = pd.to_datetime(midnight, utc=True)
     mask *= (df['Date']>=midnight) 
+    y = (df["id_RPi"][mask]==id)*df["fraction_RPi"][mask]
  
     #Single count corresponds to 10'
     countsToSeconds = 600.0
-    count = np.sum(df["id_RPi"][mask]==id)
+    count = np.sum(y)
     if count<1:
         return
         
@@ -299,10 +316,8 @@ def addPresenceData(axis, csvSensorFile, id, label, color):
     
     #Add labels
     df_tmp = df[['Date', 'id_RPi']].copy()
-    df_tmp = df_tmp.dropna()
     
     xy = (df_tmp["Date"].iloc[-1], df_tmp["id_RPi"][mask].iloc[-1])
-    #axis.text(x = 0.75, y = 0.70-id*0.5, s=time, fontsize=15, color=color, weight='bold', transform=axis.transAxes)
     axis.annotate(time,
                   xy=xy,
                   xycoords='data',

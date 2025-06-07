@@ -90,11 +90,20 @@ SYSTEM_INSTRUCTION="You are friendly robot assistant.  Your name is RPi. You loo
 
 
 
-data = client.files.upload(file="test.txt",config=dict(mime_type='text/json'))
+document = client.files.upload(file="test.txt",config=dict(mime_type='text/json'))
 #content = types.Content(role='user', parts=[{'fileData':data])
 
+cache = client.caches.create(
+    model=model,
+    config=types.CreateCachedContentConfig(
+        contents=[document],
+        system_instruction=SYSTEM_INSTRUCTION,
+    ),
+)
+cache_name = cache.name  # Save the name for later
+
 config = types.LiveConnectConfig(
-    system_instruction=[SYSTEM_INSTRUCTION, data],
+    system_instruction=[SYSTEM_INSTRUCTION],
     response_modalities=["AUDIO"],
     #enable_affective_dialog=True,
     speech_config=types.SpeechConfig(
@@ -107,6 +116,7 @@ config = types.LiveConnectConfig(
             sliding_window=types.SlidingWindow(),
         )
     ),
+    cached_content=cache.name
     )
 
 '''

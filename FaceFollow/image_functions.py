@@ -46,6 +46,7 @@ def annotateImage(image, fps):
     
   cv2.putText(image, timestamp_text, text_location, cv2.FONT_HERSHEY_PLAIN,
               _FONT_SIZE, _TEXT_COLOR, _FONT_THICKNESS)
+  image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
   return image
 ####################################################################
 def cropFace(image, focusPoints):
