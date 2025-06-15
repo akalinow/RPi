@@ -121,7 +121,7 @@ class Monitor:
             self.deltaPos *=0.6
 
         #update too small, neglect it
-        if np.sum(self.deltaPos**2)<1:
+        if np.sum(self.deltaPos**2)<8:
             return
 
         #update position    
@@ -175,9 +175,7 @@ class Monitor:
             totalCount = 1
             
         fraction = self.faceCounter/totalCount
-
-        print(fraction, totalCount)
-        
+     
         index = np.argmax(fraction)
         value = fraction[index]
         self.faceIdByFraction = index
@@ -252,8 +250,8 @@ class Monitor:
                 self.last_time = time.monotonic()
                 self.saveFace()
                 self.sendData()
-                if np.sum(self.faceCounter)<10:
-                    self.servos.loadPosition()
+                if self.faceIdByFraction<len(self.faceCounter)-1:
+                    self.servos.savePosition()
                 #print(self)
                 self.reset()
             

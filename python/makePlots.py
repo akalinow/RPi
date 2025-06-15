@@ -284,8 +284,10 @@ def addPresenceData(axis, csvSensorFile, id, label, color):
     #Plot
     x = df["Date"][mask]
     y = (df["id_RPi"][mask]==id)
-    axis.plot_date(x, y, label=label, color=color, fmt=".")
-    #axis.plot(x, y, label=label, color=color)
+    #axis.plot_date(x, y, label=label, color=color, fmt=".")
+    axis.stem(x, y, label=label,linefmt=color)
+    #axis.plot(x, y, label=label, color=color, fmt="o")
+    #axis.stem(x, y)
    
     #Adapt axes
     axis.set(xlabel='', ylabel=r'Presence',title='')
