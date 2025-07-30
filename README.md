@@ -25,7 +25,8 @@ sudo cp config/boot/config.txt /boot/firmware/config.txt
 sudo cp config/systemd/* /lib/systemd/system/
 sudo cp config/crontab/akalinow /var/spool/cron/crontabs
 sudo systemctl enable jupyter.service
-sudo systemctrl enable vsftpd.service
+sudo systemctl enable vsftpd.service
+sudo systemctl enable face_monitor.service
 python3 -m venv --system-site-packages ./venv
 source venv/bin/activate
 pip install -r python/requirements.txt
