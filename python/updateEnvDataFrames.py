@@ -42,7 +42,9 @@ def updateMeasurementPandas():
         df.index = pd.to_datetime(df["Date"], utc=True)
         df.drop(columns=["Date"], inplace=True)
 
-    measurements = ["env_data_Temperature[2h]", "env_data_CO2[2h]", "RPi_id[2h]", "RPi_fraction[2h]"]
+    measurements = ["env_data_Temperature[2h]", "env_data_CO2[2h]", 
+                    "RPi_id[2h]", "RPi_fraction[2h]", 
+                    "balkon_distance_sonic[2h]",  "balkon_distance_tof[2h]"] 
     for aMeasurement in measurements:
         data = fetch_prom_data(aMeasurement)
         fileName = './sensor_data_'+aMeasurement+'.json'

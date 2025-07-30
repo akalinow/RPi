@@ -53,8 +53,8 @@ def loadTimeTablePandas(jsonFile):
 
     df = pd.DataFrame(all_lessons)
     # Convert time strings to datetime.time objects
-    df['date_from'] = pd.to_datetime(df['date_from'], format='%H:%M').dt.time
-    df['date_to'] = pd.to_datetime(df['date_to'], format='%H:%M').dt.time
+    # disable for vacations df['date_from'] = pd.to_datetime(df['date_from'], format='%H:%M').dt.time
+    # disable for vacations df['date_to'] = pd.to_datetime(df['date_to'], format='%H:%M').dt.time
 
     return df        
 ################################################
@@ -71,7 +71,7 @@ def makePlots():
          'timezone':'Europe/Warsaw'}
     plt.rcParams.update(params)
 
-    fig = plt.figure(figsize=(8.0, 4.4)) 
+    fig = plt.figure(figsize=(8.0, 4.5)) 
     gs = GridSpec(3, 3, figure=fig)
 
     ax = fig.add_subplot(gs[:,0])
@@ -81,7 +81,13 @@ def makePlots():
     elif date.weekday() > 4:
         date = date + datetime.timedelta(days=7-date.weekday())  
 
-    addTimeTable(ax, "timetable.json", date)    
+    #disable for vacations addTimeTable(ax, "timetable.json", date) 
+    left, bottom, width, height = ax.get_position().bounds
+    ax.set_position([left+0.2, bottom, 0.5*width, 0.1])
+
+    gs.update(bottom=0.13)
+    addWaterLevel(ax, "sensor_data.csv")
+
     addInfoBox(ax)
 
     ax = fig.add_subplot(gs[0,1:])
@@ -97,8 +103,8 @@ def makePlots():
     addPresenceData(ax, "sensor_data.csv", id=0, label="AK", color="red")
     addPresenceData(ax, "sensor_data.csv", id=1, label="WK", color="green")
     
-    plt.subplots_adjust(right=0.88, left=0.0, top=0.95, bottom=0.1, hspace=0.5, wspace=0.4)
-    plt.savefig('./temperature.jpg', dpi=100)
+    plt.subplots_adjust(right=0.88, left=0.05, top=0.95, bottom=0.1, hspace=0.5, wspace=0.4)
+    plt.savefig('./page_a.jpg', dpi=100)
     #plt.show()
 ################################################
 ################################################
@@ -198,7 +204,7 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
                   color='red',
                   weight='bold',
                   bbox=dict(boxstyle="round,pad=0.3",
-                      fc="lightblue", ec="steelblue", lw=2),
+                      fc="white", ec="black", lw=2),
                   arrowprops=dict(arrowstyle="->"))
     
     df_tmp = df[['Date', 'Temperature_Solar']].copy()
@@ -213,7 +219,7 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
                   color='green',
                   weight='bold',
                   bbox=dict(boxstyle="round,pad=0.3",
-                      fc="lightblue", ec="steelblue", lw=2),
+                      fc="white", ec="black", lw=2),
                   arrowprops=dict(arrowstyle="->"))
 
     axis.legend(bbox_to_anchor=(1.01, -0.3),
@@ -222,6 +228,7 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
                 labelcolor="linecolor",
                 frameon=False,
                 alignment="left",
+                facecolor="white",
                 prop={"weight":"bold"})
     
 ################################################
@@ -252,7 +259,7 @@ def addCO2Data(axis, csvSensorFile):
                   color='red',
                   weight='bold',
                   bbox=dict(boxstyle="round,pad=0.3",
-                  fc="lightblue", ec="steelblue", lw=2),
+                  fc="white", ec="black", lw=2),
                   arrowprops=dict(arrowstyle="->"))
     
     yticks = np.arange(200, 3000, 500)
@@ -290,7 +297,7 @@ def addPresenceData(axis, csvSensorFile, id, label, color):
     #axis.stem(x, y)
    
     #Adapt axes
-    axis.set(xlabel='', ylabel=r'Presence',title='')
+    axis.set(xlabel='', ylabel=r'Komputer',title='')
     axis.set_ylim(0, 1.1)
 
     xmin = datetime.datetime.now().replace(hour=21, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1)
@@ -329,7 +336,7 @@ def addPresenceData(axis, csvSensorFile, id, label, color):
                   color=color,
                   weight='bold',
                   bbox=dict(boxstyle="round,pad=0.3",
-                  fc="lightblue", ec="steelblue", lw=2),
+                  fc="white", ec="black", lw=2),
                   arrowprops=dict(arrowstyle="->", color="white"))
 
        
@@ -465,6 +472,55 @@ def addTimeTable(axis, json_file, date):
     axis.ylabel('Day')
 #############################################
 #############################################
+def addWaterLevel(axis, csvSensorFile):
+
+    #Load data
+    df = loadPandas(csvSensorFile)
+    if df.empty:
+        return
+    
+    df_tmp = df[["Date","sonic_atom_0"]].dropna(how='any', inplace=False)    
+    axis.plot(53 - df_tmp["sonic_atom_0"], df_tmp['Date'], label='Dolny', color='blue', lw=3)
+    
+    df_tmp = df[["Date","tof_atom_0"]].dropna(how='any', inplace=False)    
+    axis.plot(28 - df_tmp["tof_atom_0"], df_tmp['Date'], label='Górny', color='green', lw=3)
+
+    #Adapt axes
+    axis.set(ylabel='', xlabel=r'Poziom H$_{2}$O [cm]',title='')
+    axis.legend(loc="upper right", framealpha=1.0)
+    
+    xticks = np.arange(0, 55, 10)
+    xlabels = [f'{y:d}' for y in xticks]
+    axis.set_xticks(xticks, labels=xlabels)
+    axis.axvline(10, color='red', linewidth=2, linestyle='--')
+
+    tzinfo = ZoneInfo("Europe/Warsaw")
+    ymin = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=1) + datetime.timedelta(hours=14) 
+    ymax = (datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)) + datetime.timedelta(hours=2) 
+
+    ymin = ymin.astimezone(tzinfo)
+    ymax = ymax.astimezone(tzinfo)
+    axis.set_ylim(ymin, ymax)
+    axis.yaxis.set_inverted(True) 
+    left, bottom, width, height = axis.get_position().bounds
+    axis.set_position([left+0.2, bottom, 0.5*width, height])
+ 
+    axis.yaxis.set_major_locator(mdates.HourLocator(interval=2))
+    axis.yaxis.set_major_formatter(mdates.DateFormatter('%H'))
+    axis.yaxis.set_minor_locator(mdates.HourLocator(interval=1))
+
+    for delta in [0,1]:
+        y = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=delta)
+        y = y.astimezone(tzinfo)
+        axis.axhline(y, color='black', linewidth=1, linestyle='--')
+        axis.annotate(y.strftime('%Y-%m-%d'), xy=(19, y), 
+                      xycoords='data', fontsize=12, color='black',
+                      fontweight='demibold')
+
+#############################################
+#############################################
+
+
 def test_module():            
             
     if __name__ == '__main__':
