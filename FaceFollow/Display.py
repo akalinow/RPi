@@ -18,8 +18,6 @@ class Display:
         serial = i2c(port=port, address=address)
         self.device = ssd1306(serial)
 
-        #canvas.rectangle(self.device.bounding_box, outline="white", fill="black")
-
         font_path = '/scratch/akalinow/luma.examples/examples/fonts/DejaVuSansMono.ttf'
         self.font_10 = ImageFont.truetype(font_path, 10)
         self.font_14 = ImageFont.truetype(font_path, 14)

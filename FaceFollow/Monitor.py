@@ -119,8 +119,7 @@ class Monitor:
         #i.e. face dissaperaed quickly from the field of view
         if len(self.faces)<1:
             self.deltaPos *=0.6
-
-        #update too small, neglect it
+            
         if np.sum(self.deltaPos**2)<8:
             return
 
@@ -243,7 +242,7 @@ class Monitor:
                 self.cropFace(iFace)
                 self.identifyFace()
                 self.displayData()
-                #print(self)
+                print(self)
 
             #Send data to Prometheus every self.updateInterval
             if time.monotonic() - self.last_time>self.updateInterval:

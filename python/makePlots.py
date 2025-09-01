@@ -81,13 +81,13 @@ def makePlots():
     elif date.weekday() > 4:
         date = date + datetime.timedelta(days=7-date.weekday())  
 
-    #disable for vacations addTimeTable(ax, "timetable.json", date) 
+    addTimeTable(ax, "timetable.json", date) #disable for vacations 
     left, bottom, width, height = ax.get_position().bounds
     ax.set_position([left+0.2, bottom, 0.5*width, 0.1])
 
     gs.update(bottom=0.13)
-    addWaterLevel(ax, "sensor_data.csv")
-
+    #addWaterLevel(ax, "sensor_data.csv") #enable for vacations 
+   
     addInfoBox(ax)
 
     ax = fig.add_subplot(gs[0,1:])
@@ -373,16 +373,18 @@ def addTimeTable(axis, json_file, date):
         boxSizeAxisFraction = np.array((0.9, 0.02))
         
         #start/end time
-        text = "$^{"+item["date_from"].strftime('%H:%M')+"}"
-        text += "_{"+item["date_to"].strftime('%H:%M')+"}$"
+        text = "$^{"+item["date_from"]+"}"
+        text += "_{"+item["date_to"]+"}$"
         #subject
-        subject = item["subject"].strip('język')
+        subject = item["subject"].strip('język ')
         if subject == "godzina wychowawcza":
             subject = "godz. wych."
         elif subject == "wychowanie fizyczne":
             subject = "WF"
         elif "native" in subject:
             subject = "ang. - NS" 
+        elif subject == "edukacja zdrowotna":
+            subject = "eduk. zdrw."
        
         text += subject
         #event 
@@ -418,6 +420,8 @@ def addTimeTable(axis, json_file, date):
 
         boxXYAxisFraction += np.array((0,-rowHeight))  
         #break
+        
+        
 
     # hide axes
     #axis.axis('off')
