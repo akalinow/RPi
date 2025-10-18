@@ -13,7 +13,7 @@ from luma.core.legacy.font import proportional, SINCLAIR_FONT
 class Display:
 
     ################################################
-    def __init__(self, port=3, address=0x3C):
+    def __init__(self, port=1, address=0x3C):
 
         serial = i2c(port=port, address=address)
         self.device = ssd1306(serial)

@@ -45,8 +45,9 @@ class Monitor:
         self.detector = Detector('blaze_face_short_range.tflite')
 
         #Servo control class
+        self.window_pos = (30,85)
         self.servos = Servos() 
-        self.servos.setPosition((95,60))
+        self.servos.setPosition(self.window_pos)
         status = self.servos.loadPosition()
         print(colored("Servo position recovery status", "blue"), status)
 
@@ -58,8 +59,8 @@ class Monitor:
 
         #ToF VL53L0X coltrol
         self.tof_sensor = VL53L0X.VL53L0X(i2c_bus=3,i2c_address=0x29)
-        self.tof_sensor.open()
-        self.tof_sensor.start_ranging(VL53L0X.Vl53l0xAccuracyMode.LONG_RANGE)
+        #self.tof_sensor.open()
+        #self.tof_sensor.start_ranging(VL53L0X.Vl53l0xAccuracyMode.LONG_RANGE)
 
         #Light sensor control
         self.light_sensor = TSL2591.TSL2591()
@@ -69,7 +70,8 @@ class Monitor:
 
         #Prometheus update rate
         self.updateInterval = 600 #seconds
-        self.last_time = -1
+        self.last_update_time = time.monotonic()
+        self.last_face_id_time = time.monotonic()
 
         #Initialize images
         self.face_patch = None
@@ -82,8 +84,8 @@ class Monitor:
     ####################################
     ####################################
     def __del__(self):
-    
-        self.tof_sensor.close()
+        pass
+        #self.tof_sensor.close()
         #self.picam.stop()
     ####################################
     ####################################
@@ -114,6 +116,7 @@ class Monitor:
         for face in self.faces:
             mean_face_pos += face[0:2]/len(self.faces)
             self.deltaPos = (mean_face_pos - 0.5)*self.picam.getFOV()/2
+            self.lasf_face_id_time = time.monotonic()
 
         #No faces to follow. Continue movement from previous direction
         #i.e. face dissaperaed quickly from the field of view
@@ -217,8 +220,9 @@ class Monitor:
         message += "p={:3.2f}".format(self.faceProb) 
         message += " f={:3.2f}".format(self.faceFraction) + "\n"
         message += "d={:d} [cm]".format(int(self.getDistance()))
-        
-        self.display.displayMessage(message)
+
+        if self.display:
+            self.display.displayMessage(message)
     ####################################
     ####################################
     def run(self):
@@ -229,11 +233,12 @@ class Monitor:
 
             self.findFaces()
             
-            if np.mean(self.image)<20:
+            if np.mean(self.image)<-20:
                 print(colored("No light. Going to sleep for 10'", "blue"))
                 self.sendData()
                 self.reset()
-                self.display.clear()
+                if self.display:
+                    self.display.clear()
                 time.sleep(600)
                 
             self.followFace(iFace)
@@ -244,9 +249,14 @@ class Monitor:
                 self.displayData()
                 print(self)
 
+            #Reset camera to look at the window
+            if time.monotonic() - self.last_face_id_time>self.updateInterval:
+                print(time.monotonic() - self.last_face_id_time)
+                #self.servos.setPosition(self.window_pos)
+                
             #Send data to Prometheus every self.updateInterval
-            if time.monotonic() - self.last_time>self.updateInterval:
-                self.last_time = time.monotonic()
+            if time.monotonic() - self.last_update_time>self.updateInterval:
+                self.last_update_time = time.monotonic()
                 self.saveFace()
                 self.sendData()
                 if self.faceIdByFraction<len(self.faceCounter)-1:

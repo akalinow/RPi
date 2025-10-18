@@ -103,7 +103,7 @@ def makePlots():
     addPresenceData(ax, "sensor_data.csv", id=0, label="AK", color="red")
     addPresenceData(ax, "sensor_data.csv", id=1, label="WK", color="green")
     
-    plt.subplots_adjust(right=0.88, left=0.05, top=0.95, bottom=0.1, hspace=0.5, wspace=0.4)
+    plt.subplots_adjust(right=0.88, left=0.01, top=0.95, bottom=0.1, hspace=0.5, wspace=0.4)
     plt.savefig('./page_a.jpg', dpi=100)
     #plt.show()
 ################################################
@@ -188,7 +188,7 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
 
     yMin, yMax = axis.get_ylim()
     axis.set_ylim(yMin-2, yMax+2)
-    axis.set_ylim(5, 35)
+    axis.set_ylim(-5, 25)
     axis.yaxis.set_major_locator(plt.MultipleLocator(5))
 
     #Add labels
@@ -404,7 +404,7 @@ def addTimeTable(axis, json_file, date):
         bb = mtransforms.Bbox([boxXYAxisFraction, boxXYAxisFraction+boxSizeAxisFraction])
         fancy = FancyBboxPatch(bb.p0, bb.width, bb.height, boxstyle="round,pad=0.05", fc=fc, ec="k", lw=2)
         axis.add_patch(fancy)
-
+        
         bbox = axis.text(*(boxXYAxisFraction + np.array((-0.03, 0))),
                 text, 
                 size=15, color=textColor,
@@ -419,9 +419,6 @@ def addTimeTable(axis, json_file, date):
                 verticalalignment="center")
 
         boxXYAxisFraction += np.array((0,-rowHeight))  
-        #break
-        
-        
 
     # hide axes
     #axis.axis('off')
