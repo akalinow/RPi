@@ -59,6 +59,7 @@ def loadTimeTablePandas(jsonFile):
     return df        
 ################################################
 ################################################
+'''
 def makePlots():
 
     #Increase labels and font size
@@ -97,15 +98,118 @@ def makePlots():
     ax = fig.add_subplot(gs[1,1:])
     addAnnotations(ax, addDates=False)
     addCO2Data(ax, "sensor_data.csv")
-
-    ax = fig.add_subplot(gs[2,1:])
-    addAnnotations(ax, addDates=False)
-    addPresenceData(ax, "sensor_data.csv", id=0, label="AK", color="red")
-    addPresenceData(ax, "sensor_data.csv", id=1, label="WK", color="green")
     
+    #ax = fig.add_subplot(gs[2,1:])
+    #addAnnotations(ax, addDates=False)
+    #addPresenceData(ax, "sensor_data.csv", id=0, label="AK", color="red")
+    #addPresenceData(ax, "sensor_data.csv", id=1, label="WK", color="green")
+    
+        ax = fig.add_subplot(gs[2,1:])
+    addAnnotations(ax, addDates=False)
+    addDustData(ax, "sensor_data.csv")
+
     plt.subplots_adjust(right=0.88, left=0.01, top=0.95, bottom=0.1, hspace=0.5, wspace=0.4)
     plt.savefig('./page_a.jpg', dpi=100)
     #plt.show()
+'''
+def makePlots():
+
+    #Increase labels and font size
+    params = {'legend.fontsize': 'x-large',
+              'figure.figsize': (5,5),
+              'axes.labelsize': 'x-large',
+              'axes.titlesize':'x-large',
+              'xtick.labelsize':'x-large',
+              'ytick.labelsize':'x-large',
+              'timezone':'Europe/Warsaw'}
+    plt.rcParams.update(params)
+
+    fig = plt.figure(figsize=(8.0, 4.5))  
+    gs = GridSpec(3, 3, figure=fig)       
+
+    # ====== TIMETABLE ======
+    ax = fig.add_subplot(gs[:,0])
+    date = datetime.datetime.now()
+
+    if date.hour > 12:
+        date = date + datetime.timedelta(days=1)
+    elif date.weekday() > 4:
+        date = date + datetime.timedelta(days=7-date.weekday())  
+
+    addTimeTable(ax, "timetable.json", date)
+    left, bottom, width, height = ax.get_position().bounds
+    ax.set_position([left+0.2, bottom, 0.5*width, 0.1])
+
+    gs.update(bottom=0.13)
+    addInfoBox(ax)
+
+    # ====== TEMPERATURE ======
+    ax = fig.add_subplot(gs[0,1:])
+    addAnnotations(ax)
+    addEnvData(ax, "sensor_data.csv", "ICM_data.csv")
+
+    # ====== CO2 ======
+    ax = fig.add_subplot(gs[1,1:])
+    addAnnotations(ax, addDates=False)
+    addCO2Data(ax, "sensor_data.csv")
+
+    # ====== DUST ======
+    ax = fig.add_subplot(gs[2,1:]) 
+    addAnnotations(ax, addDates=False)
+    addDustData(ax, "sensor_data.csv")
+
+    plt.subplots_adjust(right=0.88, left=0.01, top=0.95,
+                        bottom=0.1, hspace=0.5, wspace=0.4)
+
+    plt.savefig('./page_a.jpg', dpi=100)
+
+################################################
+################################################
+def addDustData(axis, csvSensorFile):
+    df = loadPandas(csvSensorFile)
+    if df.empty:
+        return
+
+    pm_labels = ["0_M", "5_M", "pm10_M"]
+    colors = ['red', 'green', 'blue']
+    names = ['PM1.0', 'PM2.5', 'PM10 ']
+
+    # Automatyczne przesunięcie strzałek
+    last_values = [df[label].dropna().iloc[-1] if label in df.columns else np.nan for label in pm_labels]
+    n = len(last_values)
+    max_offset = 0.50  # procent wysokości osi na największe przesunięcie
+    yPositions = [0.75, 0.40, 0.05]
+
+    for label, color, name, yPos in zip(pm_labels, colors, names, yPositions):
+        if label in df.columns:
+            df_tmp = df[['Date', label]].dropna()
+            axis.plot_date(df_tmp['Date'], df_tmp[label], label=name, color=color, fmt='.')            
+            # Annotate last value
+            xy = (df_tmp["Date"].iloc[-1], df_tmp[label].iloc[-1])
+            axis.annotate(str(round(xy[1],1)),
+                          xy=xy,
+                          xycoords='data',
+                          xytext=(0.83, yPos),  # dynamiczne przesunięcie
+                          textcoords='axes fraction',
+                          fontsize=13,
+                          color=color,
+                          weight='bold',
+                          bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="black", lw=2),
+                          arrowprops=dict(arrowstyle="->"))
+
+    axis.set(xlabel='', ylabel=r'PM [$\mu g/m^3$]', title='')
+    axis.set_ylim(0, 100)
+    axis.axhline(15, color='black', linewidth=1, linestyle='--')
+
+    # Węższa legenda
+    axis.legend(bbox_to_anchor=(1.01, 1.1),
+                loc='upper left', borderaxespad=0.,
+                markerfirst=False,
+                labelcolor="linecolor",
+                frameon=False,
+                alignment="left",
+                facecolor="white",
+                prop={"weight":"bold"})
 ################################################
 ################################################
 def addInfoBox(axis):
@@ -188,7 +292,7 @@ def addEnvData(axis, csvSensorFile, csvForecastFile):
 
     yMin, yMax = axis.get_ylim()
     axis.set_ylim(yMin-2, yMax+2)
-    axis.set_ylim(-5, 25)
+    axis.set_ylim(-15, 25)
     axis.yaxis.set_major_locator(plt.MultipleLocator(5))
 
     #Add labels
@@ -240,16 +344,16 @@ def addCO2Data(axis, csvSensorFile):
     if df.empty:
         return
     
-    axis.plot_date(df['Date'], df["CO2_K"], label='Salon', color='red', fmt=".")
+    axis.plot_date(df['Date'], df["CO2_M"], label='Salon', color='red', fmt=".")
 
     #Adapt axes
     axis.set(xlabel='', ylabel=r'CO$_{2}$ [ppk]',title='')
     axis.set_ylim(200, 3000)
 
     #Add labels
-    df_tmp = df[['Date', 'CO2_K']].copy()
+    df_tmp = df[['Date', 'CO2_M']].copy()
     df_tmp = df_tmp.dropna()
-    xy = (df_tmp["Date"].iloc[-1], df_tmp["CO2_K"].iloc[-1])
+    xy = (df_tmp["Date"].iloc[-1], df_tmp["CO2_M"].iloc[-1])
     axis.annotate(str(xy[1]),
                   xy=xy,
                   xycoords='data',

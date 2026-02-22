@@ -44,7 +44,9 @@ def updateMeasurementPandas():
 
     measurements = ["env_data_Temperature[2h]", "env_data_CO2[2h]", 
                     "RPi_id[2h]", "RPi_fraction[2h]", 
-                    "balkon_distance_sonic[2h]",  "balkon_distance_tof[2h]"] 
+                    "balkon_distance_sonic[2h]",  "balkon_distance_tof[2h]",
+                    "env_data_pm1_0[2h]","env_data_pm2_5[2h]","env_data_pm10[2h]"
+                    ] 
     for aMeasurement in measurements:
         data = fetch_prom_data(aMeasurement)
         fileName = './sensor_data_'+aMeasurement+'.json'

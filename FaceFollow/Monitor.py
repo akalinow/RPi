@@ -58,7 +58,8 @@ class Monitor:
         self.prom = Prometheus()
 
         #ToF VL53L0X coltrol
-        self.tof_sensor = VL53L0X.VL53L0X(i2c_bus=3,i2c_address=0x29)
+        self.tof_sensor = None
+        #self.tof_sensor = VL53L0X.VL53L0X(i2c_bus=3,i2c_address=0x29)
         #self.tof_sensor.open()
         #self.tof_sensor.start_ranging(VL53L0X.Vl53l0xAccuracyMode.LONG_RANGE)
 
@@ -116,19 +117,21 @@ class Monitor:
         for face in self.faces:
             mean_face_pos += face[0:2]/len(self.faces)
             self.deltaPos = (mean_face_pos - 0.5)*self.picam.getFOV()/2
-            self.lasf_face_id_time = time.monotonic()
+            self.last_face_id_time = time.monotonic()
 
         #No faces to follow. Continue movement from previous direction
         #i.e. face dissaperaed quickly from the field of view
         if len(self.faces)<1:
             self.deltaPos *=0.6
-            
-        if np.sum(self.deltaPos**2)<8:
+    
+        if np.sqrt(np.sum(self.deltaPos**2))<4:
             return
 
         #update position    
-        faceAngle = self.servos.getPosition() + self.deltaPos*1.0
+        faceAngle = self.servos.getPosition() + self.deltaPos
+        
         self.servos.setPosition(faceAngle)
+        time.sleep(0.01)
     ####################################
     ####################################
     def cropFace(self, iFace):
@@ -185,7 +188,9 @@ class Monitor:
     ####################################
     ####################################
     def getDistance(self):
-        distance = self.tof_sensor.get_distance()/10 #cm
+        distance = -1
+        if self.tof_sensor:
+            distance = self.tof_sensor.get_distance()/10 #cm
         return distance
     ####################################
     ####################################
@@ -223,6 +228,7 @@ class Monitor:
 
         if self.display:
             self.display.displayMessage(message)
+            
     ####################################
     ####################################
     def run(self):
@@ -240,7 +246,7 @@ class Monitor:
                 if self.display:
                     self.display.clear()
                 time.sleep(600)
-                
+  
             self.followFace(iFace)
             #Face identification every 10''
             if int(time.monotonic())%10==0:
@@ -251,16 +257,15 @@ class Monitor:
 
             #Reset camera to look at the window
             if time.monotonic() - self.last_face_id_time>self.updateInterval:
-                print(time.monotonic() - self.last_face_id_time)
-                #self.servos.setPosition(self.window_pos)
+                self.servos.setPosition(self.window_pos)
                 
             #Send data to Prometheus every self.updateInterval
             if time.monotonic() - self.last_update_time>self.updateInterval:
                 self.last_update_time = time.monotonic()
                 self.saveFace()
                 self.sendData()
-                if self.faceIdByFraction<len(self.faceCounter)-1:
-                    self.servos.savePosition()
+                #if self.faceIdByFraction<len(self.faceCounter)-1:
+                #    self.servos.savePosition()
                 #print(self)
                 self.reset()
             
@@ -272,7 +277,8 @@ class Monitor:
         message += colored("Light: ","blue") + str(self.getLight()) + " lux "
         message += colored("Distance: ","blue") + str(self.getDistance()) + " cm " 
         message += colored("Face id. Instant: ","blue") + str(self.faceIndex) + " "
-        message += colored("by fraction: ","blue") + "{:3.2f}".format(self.faceIdByFraction)
+        message += colored("by fraction: ","blue") + "{:3.2f}".format(self.faceIdByFraction) + " "
+        message += colored("position (H:V): ","blue") + "{:2.0f}:{:2.0f}".format(*self.servos.getPosition())
         #message += "\n"
         return message
 

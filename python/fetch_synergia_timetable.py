@@ -11,7 +11,7 @@ from librus_apix.timetable import get_timetable, Period
 #############################################
 def test0():
     login = "11852563"
-    password = "Pi=3.1415"
+    password = "WrqiJKs73LFpY6v"
     API_URL = "https://api.librus.pl/"
 
     headers = {
@@ -64,7 +64,7 @@ def getScheduleJSON():
     client: Client = new_client()
     # update the token
     login = "11852563"
-    password = "Pi=3.1415"
+    password = "WrqiJKs73LFpY6v"
     _token: Token = client.get_token(login, password)
     # now you can pass your client to librus-apix functions
     

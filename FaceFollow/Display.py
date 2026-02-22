@@ -5,6 +5,7 @@ from pathlib import Path
 from PIL import ImageFont
 from PIL import Image
 
+import time
 from luma.core.interface.serial import i2c
 from luma.core.render import canvas
 from luma.oled.device import ssd1306
@@ -29,14 +30,11 @@ class Display:
     #################################################
     def displayMessage(self, name):
 
-            try:
-                with canvas(self.device) as draw:
-                    draw.text((5, 10), name, fill="white", font=self.font_14)
-                    
-                    timestamp = datetime.datetime.now().strftime('%H:%M:%S')
-                    draw.text((70, 3), timestamp, fill="white", font=self.font_10)
-            except:
-                pass
+        with canvas(self.device) as draw:
+            timestamp = datetime.datetime.now().strftime('%H:%M:%S')
+            draw.text((5, 10), name, fill="white", font=self.font_14)
+            draw.text((70, 3), timestamp, fill="white", font=self.font_10)
+
             
     ################################################
     
@@ -49,7 +47,7 @@ def test_module():
   
         displayObj = Display()
         displayObj.displayMessage("TEST")
-        time.sleep(2)
+        time.sleep(5)
         
                 
 #############################################
